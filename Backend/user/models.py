@@ -13,5 +13,6 @@ class User(AbstractUser):
 
   
 class token(models.Model):
-    user=models.ForeignKey(User,on_delete=models.CASCADE)
-    OTP=models.TextField(unique=True)
+    user=models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+    OTP=models.CharField( max_length=6)
+    created_at=models.DateTimeField(auto_now=True)
