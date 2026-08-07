@@ -40,4 +40,18 @@ class Token(APIView):
             serilizer.save()
             return response.Response(serilizer.data,status=status.HTTP_201_CREATED)
         return response.Response(serilizer.errors, status=status.HTTP_400_BAD_REQUEST)
-       
+
+class Token_one(APIView):
+    def get_object(self,id):
+        return get_object_or_404(token, user=id)
+    def get(self,request,id):
+        otp = self.get_object(id)
+        serilizer=TokenSerilizer(otp)
+        return response.Response(serilizer.data,status=status.HTTP_200_OK)
+    def put(self,request,id):
+        otp=self.get_object(id)
+        serilizer=TokenSerilizer(otp,data=request.data)
+        if serilizer.is_valid():
+            serilizer.save()
+            return response.Response(serilizer.data,status=status.HTTP_200_OK)
+        return response.Response(serilizer.errors,status=status.HTTP_400_BAD_REQUEST)
