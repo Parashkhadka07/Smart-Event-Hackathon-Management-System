@@ -4,23 +4,23 @@ from .models import User,token
 from .serializers import UserSerilizer,TokenSerilizer
 from rest_framework import response
 from rest_framework import status
-from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView        
+from rest_framework.views import APIView   
+
 # Create your views here.
-@api_view(['GET','POST'])
-def users(request):
-    if request.method=='GET':
-        student=User.objects.all()
-        serilizer=UserSerilizer(student,many=True)
+
+class Users(APIView):
+    def get(self,request):
+        user_data=User.objects.all()
+        serilizer=UserSerilizer(user_data,many=True)
         return response.Response(serilizer.data,status=status.HTTP_200_OK)
-        
-    elif request.method=='POST':
+
+    def post(self,request):
         serilizer=UserSerilizer(data=request.data)
         if serilizer.is_valid():
             serilizer.save()
             return response.Response(serilizer.data,status=status.HTTP_201_CREATED)
-        return response.Response(serilizer.errors,status=status.HTTP_400_BAD_REQUEST)
+        return response.Response(serilizer.errors ,status=status.HTTP_400_BAD_REQUEST)
 
 
 class Token(APIView):
@@ -42,6 +42,7 @@ class Token(APIView):
         return response.Response(serilizer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class Token_one(APIView):
+
     def get_object(self,id):
         return get_object_or_404(token, user=id)
     def get(self,request,id):
@@ -55,3 +56,9 @@ class Token_one(APIView):
             serilizer.save()
             return response.Response(serilizer.data,status=status.HTTP_200_OK)
         return response.Response(serilizer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+    
