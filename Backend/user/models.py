@@ -8,6 +8,7 @@ class User(AbstractUser):
         "J":"judge",
         "E":"employee"
     }
+    email = models.EmailField(unique=True)
     id=models.UUIDField(default=uuid.uuid4,primary_key=True,editable=False)
     role=models.CharField(choices=ROLE_CHOICES,max_length=12 )
 

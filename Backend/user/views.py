@@ -22,7 +22,25 @@ class Users(APIView):
             return response.Response(serilizer.data,status=status.HTTP_201_CREATED)
         return response.Response(serilizer.errors ,status=status.HTTP_400_BAD_REQUEST)
 
+class Single_user(APIView):
+    def get_object(self,id):
+        return get_object_or_404(User, id=id)
+    def get(self,request,id):
+        serilizer=UserSerilizer(self.get_object(id))
+        return response.Response(serilizer.data,status=status.HTTP_200_OK)
+    def put(self,request,id):
+        old_data=self.get_object(id)
+        serilizer=UserSerilizer(old_data,data=request.data)
+        if serilizer.is_valid():
+            serilizer.save()
+            return response.Response(serilizer.data,status=status.HTTP_200_OK)
+        return response.Response(serilizer.errors,status=status.HTTP_400_BAD_REQUEST)
+    def delete(self,request,id):
+        data=self.get_object(id)
+        data.delete()
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
+       
 class Token(APIView):
     def get(self,request):
         try:
