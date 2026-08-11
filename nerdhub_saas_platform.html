@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NerdHub — Smart Event & Hackathon Management System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#07090E',
+                            800: '#0F172A',
+                            700: '#1E293B',
+                            600: '#334155'
+                        },
+                        neon: {
+                            green: '#00FFA3',
+                            emerald: '#10B981',
+                            cyan: '#06B6D4',
+                            blue: '#3B82F6',
+                            purple: '#8B5CF6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for SaaS Dashboards -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #07090E; color: #E2E8F0; }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(0, 255, 163, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 163, 0.1);
+        }
+        .neon-glow-green { box-shadow: 0 0 25px rgba(0, 255, 163, 0.25); }
+        .neon-glow-blue { box-shadow: 0 0 25px rgba(59, 130, 246, 0.25); }
+        .gradient-text {
+            background: linear-gradient(135deg, #00FFA3 0%, #06B6D4 50%, #3B82F6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #07090E; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="h-full bg-[#07090E] text-slate-200 antialiased flex flex-col selection:bg-neon-green selection:text-black">
+
+<!-- Top Role Selector & Simulation Bar -->
+<div id="roleBar" class="bg-slate-900 border-b border-slate-800 text-xs py-2 px-4 flex flex-wrap justify-between items-center z-50 sticky top-0 shadow-lg">
+    <div class="flex items-center space-x-3">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> Dynamic Prototype Mode
+        </span>
+        <span class="text-slate-400 hidden sm:inline">Active View Mode:</span>
+        <div class="flex space-x-1 overflow-x-auto py-1 sm:py-0">
+            <button onclick="switchRole('guest')" id="btn-role-guest" class="role-btn px-2.5 py-1 rounded-md text-xs font-medium transition bg-slate-800 text-slate-300 hover:text-white border border-slate-700">Public Landing</button>
+            <button onclick="switchRole('participant')" id="btn-role-participant" class="role-btn px-2.5 py-1 rounded-md text-xs font-medium transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Participant (Parash)</button>
+            <button onclick="switchRole('judge')" id="btn-role-judge" class="role-btn px-2.5 py-1 rounded-md text-xs font-medium transition bg-slate-800 text-slate-300 hover:text-white border border-slate-700">Judge (Dr. Aris)</button>
+            <button onclick="switchRole('mentor')" id="btn-role-mentor" class="role-btn px-2.5 py-1 rounded-md text-xs font-medium transition bg-slate-800 text-slate-300 hover:text-white border border-slate-700">Mentor (Elena)</button>
+            <button onclick="switchRole('admin')" id="btn-role-admin" class="role-btn px-2.5 py-1 rounded-md text-xs font-medium transition bg-slate-800 text-slate-300 hover:text-white border border-slate-700">Admin / Organizer</button>
+        </div>
+    </div>
+    <div class="flex items-center space-x-3 mt-1 sm:mt-0">
+        <button onclick="triggerToast('Background Job: Event status updated [Upcoming -> Ongoing]', 'info')" class="text-slate-400 hover:text-slate-200 transition" title="Trigger Automated Task Simulation">
+            <i class="fa-solid fa-robot mr-1 text-cyan-400"></i> Auto-Tasks Status
+        </button>
+        <span class="text-slate-600">|</span>
+        <span class="text-slate-400" id="currentRoleLabel"><i class="fa-solid fa-user-gear mr-1 text-neon-green"></i> Participant View</span>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+<!-- MAIN VIEW WRAPPER -->
+<div id="app" class="flex-1 flex flex-col min-h-screen">
+
+    <!-- VIEW 1: PUBLIC LANDING PAGE -->
+    <section id="view-landing" class="view-section flex-1 flex flex-col">
+        <!-- Landing Navbar -->
+        <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-[37px] z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="showPage('landing')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-emerald-500/20">
+                        N
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold tracking-tight text-white">Nerd<span class="text-neon-green">Hub</span></span>
+                        <span class="block text-[10px] text-slate-400 tracking-wider uppercase">Smart Event System</span>
+                    </div>
+                </div>
+                <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                    <a href="#landing" onclick="showPage('landing')" class="text-neon-green hover:text-emerald-400 transition">Home</a>
+                    <a href="#discover" onclick="showPage('discover')" class="text-slate-300 hover:text-white transition">Events</a>
+                    <a href="#how-it-works" onclick="scrollToSection('how-it-works-sec')" class="text-slate-300 hover:text-white transition">How It Works</a>
+                    <a href="#leaderboard" onclick="showPage('leaderboard')" class="text-slate-300 hover:text-white transition">Leaderboard</a>
+                </nav>
+                <div class="flex items-center space-x-3">
+                    <button onclick="showPage('login')" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition">Log In</button>
+                    <button onclick="showPage('register')" class="px-4 py-2 text-sm font-semibold text-slate-950 bg-neon-green hover:bg-emerald-400 rounded-lg transition shadow-lg shadow-emerald-500/20">Register Now</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <div class="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-b from-slate-950 via-slate-900 to-[#07090E]">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,255,163,0.08),transparent_50%)]"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-cyan-400">
+                            <span class="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300">NEW</span>
+                            <span>AI-Powered Project Submissions & Multi-Judge Rubrics</span>
+                        </div>
+                        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                            Turn Ideas Into <br>
+                            <span class="gradient-text">Innovation</span> & Breakthroughs
+                        </h1>
+                        <p class="text-lg text-slate-400 max-w-2xl font-normal leading-relaxed">
+                            NerdHub empowers hackathon organizers, mentors, and developers to collaborate, submit verified code, and compete seamlessly with live automated leaderboards.
+                        </p>
+                        <div class="flex flex-wrap gap-4 pt-2">
+                            <button onclick="showPage('discover')" class="px-6 py-3.5 rounded-xl bg-neon-green hover:bg-emerald-400 text-slate-950 font-bold text-sm transition flex items-center shadow-lg shadow-emerald-500/25">
+                                <i class="fa-solid fa-compass mr-2"></i> Explore Events
+                            </button>
+                            <button onclick="switchRole('admin'); showPage('create-event')" class="px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 transition flex items-center">
+                                <i class="fa-solid fa-plus-circle mr-2 text-neon-green"></i> Host an Event
+                            </button>
+                        </div>
+                        <!-- Micro social proof -->
+                        <div class="pt-6 border-t border-slate-800/80 flex items-center space-x-6 text-xs text-slate-400">
+                            <div class="flex -space-x-2">
+                                <img class="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="User">
+                                <img class="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" alt="User">
+                                <img class="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="User">
+                            </div>
+                            <span>Joined by <strong class="text-slate-200">2,500+ developers</strong> across top universities & tech companies.</span>
+                        </div>
+                    </div>
+                    <!-- Hero Visual -->
+                    <div class="lg:col-span-5 relative">
+                        <div class="glass-card rounded-2xl p-6 relative z-10 border border-slate-700/50 shadow-2xl">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <span class="text-xs font-mono text-slate-400 ml-2">nerdhub-live-hackathon.ts</span>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase tracking-widest">Live</span>
+                            </div>
+                            <div class="space-y-4 font-mono text-xs">
+                                <div class="p-3 bg-slate-900/90 rounded-lg border border-slate-800">
+                                    <div class="text-slate-400">// Active Hackathon: CodeSprint Global 2026</div>
+                                    <div class="text-cyan-400 mt-1">&gt; Status: <span class="text-neon-green">JUDGING_IN_PROGRESS</span></div>
+                                    <div class="text-slate-300 mt-1">&gt; Submissions: <span class="text-yellow-400">142 Projects</span></div>
+                                </div>
+                                <div class="p-3 bg-slate-900/90 rounded-lg border border-slate-800">
+                                    <div class="text-xs text-slate-300 font-sans font-semibold mb-2 flex justify-between">
+                                        <span>Current Top Team: Team NeuralCraft</span>
+                                        <span class="text-neon-green font-bold">98.5 pts</span>
+                                    </div>
+                                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-gradient-to-r from-cyan-500 to-neon-green h-full w-[98%]"></div>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-slate-900/90 rounded-lg border border-slate-800 flex items-center justify-between text-slate-300">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-award text-yellow-400 text-lg"></i>
+                                        <div>
+                                            <div class="font-sans font-semibold text-sm text-white">Prize Pool</div>
+                                            <div class="text-[11px] text-slate-400">$15,000 + Cloud Credits</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="switchRole('participant'); showPage('event-details')" class="px-3 py-1.5 rounded-md bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 text-xs font-sans transition">View Event</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform Statistics Banner -->
+        <div class="border-y border-slate-800 bg-slate-900/50 py-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-extrabold text-white">120+</div>
+                        <div class="text-xs uppercase tracking-wider text-slate-400 mt-1 font-semibold">Events Hosted</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-extrabold text-neon-green">2,500+</div>
+                        <div class="text-xs uppercase tracking-wider text-slate-400 mt-1 font-semibold">Active Participants</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-extrabold text-cyan-400">600+</div>
+                        <div class="text-xs uppercase tracking-wider text-slate-400 mt-1 font-semibold">Teams Formed</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-extrabold text-blue-400">1,200+</div>
+                        <div class="text-xs uppercase tracking-wider text-slate-400 mt-1 font-semibold">Projects Built</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div id="how-it-works-sec" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl font-extrabold text-white">How NerdHub Works</h2>
+                <p class="text-slate-400 mt-3 text-sm">A seamless journey from initial idea generation to real-time evaluation and leaderboard recognition.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 relative">
+                <!-- Step 1 -->
+                <div class="glass-card p-6 rounded-xl text-center space-y-3 relative">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-neon-green border border-emerald-500/20 flex items-center justify-center font-bold text-lg mx-auto">1</div>
+                    <h3 class="font-bold text-white text-base">Discover</h3>
+                    <p class="text-xs text-slate-400">Browse online or in-person hackathons based on technologies, dates, and prizes.</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="glass-card p-6 rounded-xl text-center space-y-3 relative">
+                    <div class="w-12 h-12 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center font-bold text-lg mx-auto">2</div>
+                    <h3 class="font-bold text-white text-base">Register</h3>
+                    <p class="text-xs text-slate-400">Sign up solo or form/join a cross-functional team with automated invite codes.</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="glass-card p-6 rounded-xl text-center space-y-3 relative">
+                    <div class="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-lg mx-auto">3</div>
+                    <h3 class="font-bold text-white text-base">Build</h3>
+                    <p class="text-xs text-slate-400">Connect with assigned mentors, participate in office hours, and write clean code.</p>
+                </div>
+                <!-- Step 4 -->
+                <div class="glass-card p-6 rounded-xl text-center space-y-3 relative">
+                    <div class="w-12 h-12 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold text-lg mx-auto">4</div>
+                    <h3 class="font-bold text-white text-base">Submit</h3>
+                    <p class="text-xs text-slate-400">Upload code repositories, live demo links, presentations, and solution blueprints.</p>
+                </div>
+                <!-- Step 5 -->
+                <div class="glass-card p-6 rounded-xl text-center space-y-3 relative">
+                    <div class="w-12 h-12 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 flex items-center justify-center font-bold text-lg mx-auto">5</div>
+                    <h3 class="font-bold text-white text-base">Compete</h3>
+                    <p class="text-xs text-slate-400">Get scored by judges on innovation, tech stack, and UI to win prizes on live leaderboards.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Landing Footer -->
+        <footer class="mt-auto border-t border-slate-800 bg-slate-950 py-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+                <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                    <span class="font-bold text-slate-300">NerdHub SaaS</span> &copy; 2026. Built for Organizers, Hackers & Mentors.
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-slate-300">Privacy Policy</a>
+                    <a href="#" class="hover:text-slate-300">Terms of Service</a>
+                    <a href="#" class="hover:text-slate-300">Django Setup Guide</a>
+                    <a href="#" class="hover:text-slate-300">Support</a>
+                </div>
+            </div>
+        </footer>
+    </section>
+
+    <!-- VIEW 2: LOGIN PAGE -->
+    <section id="view-login" class="view-section flex-1 hidden items-center justify-center py-12 px-4">
+        <div class="max-w-md w-full glass-card p-8 rounded-2xl border border-slate-800 shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-xl bg-neon-green text-slate-950 flex items-center justify-center font-black text-2xl mx-auto">N</div>
+                <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
+                <p class="text-xs text-slate-400">Enter your credentials to access your NerdHub dashboard.</p>
+            </div>
+            <form onsubmit="handleAuthLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email or Username</label>
+                    <input type="text" id="loginEmail" required value="parash@nerdhub.io" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-slate-300">Password</label>
+                        <a href="#" onclick="alert('Password reset link sent to demo account.')" class="text-xs text-neon-green hover:underline">Forgot?</a>
+                    </div>
+                    <input type="password" required value="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" checked class="rounded border-slate-700 bg-slate-900 text-neon-green focus:ring-0">
+                        <span>Remember me for 30 days</span>
+                    </label>
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-neon-green hover:bg-emerald-400 text-slate-950 font-bold text-sm transition">Sign In</button>
+                <button type="button" onclick="handleAuthLogin(event)" class="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs border border-slate-700 transition flex items-center justify-center space-x-2">
+                    <i class="fa-brands fa-google text-red-400"></i>
+                    <span>Continue with Google</span>
+                </button>
+            </form>
+            <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                Don't have an account? <a href="#register" onclick="showPage('register')" class="text-neon-green font-semibold hover:underline">Register now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIEW 3: REGISTRATION PAGE -->
+    <section id="view-register" class="view-section flex-1 hidden items-center justify-center py-12 px-4">
+        <div class="max-w-lg w-full glass-card p-8 rounded-2xl border border-slate-800 shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl font-bold text-white">Create Account</h2>
+                <p class="text-xs text-slate-400">Join the NerdHub community as a Hacker, Mentor, or Organizer.</p>
+            </div>
+            <form onsubmit="handleAuthRegister(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+                        <input type="text" required placeholder="Parash Sharma" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Username</label>
+                        <input type="text" required placeholder="parash_dev" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                    <input type="email" required placeholder="parash@university.edu" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                        <input type="password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Confirm Password</label>
+                        <input type="password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
+                        <input type="text" placeholder="+1 (555) 019-2834" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Primary Role</label>
+                        <select id="regRoleSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-green">
+                            <option value="participant">Participant / Hacker</option>
+                            <option value="mentor">Mentor / Advisor</option>
+                            <option value="judge">Judge / Evaluator</option>
+                            <option value="admin">Organizer / Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-neon-green hover:bg-emerald-400 text-slate-950 font-bold text-sm transition mt-2">Create Account</button>
+            </form>
+            <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                Already registered? <a href="#login" onclick="showPage('login')" class="text-neon-green font-semibold hover:underline">Log in here</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- APP DASHBOARD LAYOUT (FOR PARTICIPANT, JUDGE, MENTOR, ADMIN) -->
+    <div id="dashboardLayout" class="flex-1 flex hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
+            <!-- App Brand Header -->
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="showPage('landing')">
+                    <div class="w-8 h-8 rounded-lg bg-neon-green text-slate-950 flex items-center justify-center font-black text-lg">N</div>
+                    <span class="font-bold text-white tracking-tight">Nerd<span class="text-neon-green">Hub</span></span>
+                </div>
+                <span id="roleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">Participant</span>
+            </div>
+
+            <!-- Dynamic Navigation Links -->
+            <nav class="flex-1 p-3 space-y-1 overflow-y-auto text-xs font-medium" id="sidebarNav">
+                <!-- Links dynamically injected or controlled via active role JS -->
+            </nav>
+
+            <!-- User Profile Summary Footer -->
+            <div class="p-3 border-t border-slate-800 bg-slate-950/50 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden cursor-pointer" onclick="showPage('profile')">
+                    <img id="userAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Avatar" class="w-8 h-8 rounded-full border border-slate-700 object-cover">
+                    <div class="truncate">
+                        <div id="userName" class="font-semibold text-white truncate">Parash Sharma</div>
+                        <div id="userRoleSub" class="text-[10px] text-slate-400 truncate">Participant</div>
+                    </div>
+                </div>
+                <button onclick="showPage('notifications')" class="text-slate-400 hover:text-white p-1.5 relative">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-neon-green"></span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard View Container -->
+        <main class="flex-1 bg-[#07090E] overflow-y-auto p-4 sm:p-8">
+            
+            <!-- VIEW 4: PARTICIPANT DASHBOARD -->
+            <section id="view-participant-dashboard" class="dash-view space-y-6">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Welcome back, Parash! 👋</h1>
+                        <p class="text-xs text-slate-400 mt-1">HackFest 2026 is currently active. Project submission closes in 2 days.</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="showPage('discover')" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 transition">
+                            <i class="fa-solid fa-search mr-1.5 text-cyan-400"></i> Find Hackathons
+                        </button>
+                        <button onclick="showPage('submit-project')" class="px-3.5 py-2 rounded-lg bg-neon-green hover:bg-emerald-400 text-slate-950 text-xs font-bold transition shadow-lg shadow-emerald-500/10">
+                            <i class="fa-solid fa-upload mr-1.5"></i> Submit Project
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-card p-4 rounded-xl space-y-2 border-l-4 border-l-neon-green">
+                        <div class="flex justify-between items-center text-slate-400 text-xs">
+                            <span>Registered Events</span>
+                            <i class="fa-solid fa-calendar-check text-neon-green"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-white">3</div>
+                        <div class="text-[11px] text-emerald-400"><i class="fa-solid fa-arrow-up text-[10px]"></i> 1 Active this week</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl space-y-2 border-l-4 border-l-cyan-400">
+                        <div class="flex justify-between items-center text-slate-400 text-xs">
+                            <span>Active Team</span>
+                            <i class="fa-solid fa-users text-cyan-400"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-white">NeuralCraft</div>
+                        <div class="text-[11px] text-slate-400">4 / 4 Members assigned</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl space-y-2 border-l-4 border-l-blue-500">
+                        <div class="flex justify-between items-center text-slate-400 text-xs">
+                            <span>Projects Submitted</span>
+                            <i class="fa-solid fa-code text-blue-400"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-white">2</div>
+                        <div class="text-[11px] text-cyan-400">1 Draft Pending</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl space-y-2 border-l-4 border-l-yellow-500">
+                        <div class="flex justify-between items-center text-slate-400 text-xs">
+                            <span>Next Deadline</span>
+                            <i class="fa-solid fa-clock text-yellow-400"></i>
+                        </div>
+                        <div class="text-xl font-bold text-yellow-400">42h 18m</div>
+                        <div class="text-[11px] text-slate-400">HackFest Code Submission</div>
+                    </div>
+                </div>
+
+                <!-- Two-Column Grid: Active Event & Team Info -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Current Active Event -->
+                    <div class="lg:col-span-2 glass-card p-6 rounded-xl space-y-5">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold uppercase tracking-wider text-neon-green bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">Active Hackathon</span>
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-location-dot mr-1"></i> Virtual / Online</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white">HackFest Global 2026</h2>
+                            <p class="text-xs text-slate-400 mt-1">Build next-gen AI applications utilizing modern APIs, LLMs, and cloud infrastructure.</p>
+                        </div>
+                        <!-- Timeline Progress Bar -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span class="text-slate-300">Hackathon Phase: Build & Submit</span>
+                                <span class="text-neon-green">Phase 3 of 5</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div class="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 h-full w-[65%]"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                            <div>
+                                <div class="text-slate-400">Registration</div>
+                                <div class="font-bold text-emerald-400 mt-0.5">Closed</div>
+                            </div>
+                            <div>
+                                <div class="text-slate-400">Submission</div>
+                                <div class="font-bold text-yellow-400 mt-0.5">Closes in 42h</div>
+                            </div>
+                            <div>
+                                <div class="text-slate-400">Judging</div>
+                                <div class="font-bold text-slate-400 mt-0.5">Starts Aug 12</div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3 pt-2">
+                            <button onclick="showPage('event-details')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-medium border border-slate-700 transition">View Full Schedule</button>
+                            <button onclick="showPage('submit-project')" class="px-4 py-2 bg-neon-green hover:bg-emerald-400 text-slate-950 rounded-lg text-xs font-bold transition">Open Project Wizard</button>
+                        </div>
+                    </div>
+
+                    <!-- Team Status Widget -->
+                    <div class="glass-card p-6 rounded-xl space-y-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white text-sm">My Team: NeuralCraft</h3>
+                                <span class="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">Leader</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between text-xs bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+                                    <div class="flex items-center space-x-2">
+                                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-6 h-6 rounded-full object-cover">
+                                        <span class="text-slate-200">Parash (You)</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400">Full Stack</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+                                    <div class="flex items-center space-x-2">
+                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="w-6 h-6 rounded-full object-cover">
+                                        <span class="text-slate-200">Alex Rivera</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400">AI / ML Engineer</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+                                    <div class="flex items-center space-x-2">
+                                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" class="w-6 h-6 rounded-full object-cover">
+                                        <span class="text-slate-200">Maya Patel</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400">UI/UX Designer</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="showPage('team-management')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold border border-slate-700 transition mt-4">Manage Team & Invites</button>
+                    </div>
+                </div>
+
+                <!-- Recent Announcements Section -->
+                <div class="glass-card p-6 rounded-xl space-y-4">
+                    <h3 class="font-bold text-white text-sm flex items-center">
+                        <i class="fa-solid fa-bullhorn text-neon-green mr-2"></i> Event Announcements
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-800 flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold text-white">Mentor Office Hours Schedule Released</span>
+                                <p class="text-xs text-slate-400 mt-1">Book 1-on-1 sessions with AI/Cloud mentors from 2 PM to 6 PM EST in the Mentorship tab.</p>
+                            </div>
+                            <span class="text-[10px] text-slate-500 whitespace-nowrap ml-4">2 hours ago</span>
+                        </div>
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-800 flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold text-white">Submission Requirements Checklist</span>
+                                <p class="text-xs text-slate-400 mt-1">Ensure your GitHub repository is set to public and includes a runnable README or Loom video demo link.</p>
+                            </div>
+                            <span class="text-[10px] text-slate-500 whitespace-nowrap ml-4">Yesterday</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 5: EVENT DISCOVERY -->
+            <section id="view-discover" class="dash-view hidden space-y-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Discover Hackathons & Events</h1>
+                    <p class="text-xs text-slate-400 mt-1">Explore upcoming global hackathons, filter by technologies, prizes, and schedule.</p>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="glass-card p-4 rounded-xl flex flex-col md:flex-row gap-3 items-center justify-between">
+                    <div class="relative w-full md:w-80">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" placeholder="Search hackathons, topics, tech..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-neon-green">
+                    </div>
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto text-xs">
+                        <select class="bg-slate-900 border border-slate-700 text-slate-300 rounded-lg px-3 py-2 focus:outline-none">
+                            <option>All Categories</option>
+                            <option>AI / Machine Learning</option>
+                            <option>Web3 & Blockchain</option>
+                            <option>Cloud & DevOps</option>
+                        </select>
+                        <select class="bg-slate-900 border border-slate-700 text-slate-300 rounded-lg px-3 py-2 focus:outline-none">
+                            <option>Status: All</option>
+                            <option selected>Ongoing / Registration Open</option>
+                            <option>Upcoming</option>
+                            <option>Completed</option>
+                        </select>
+                        <select class="bg-slate-900 border border-slate-700 text-slate-300 rounded-lg px-3 py-2 focus:outline-none">
+                            <option>Location: All</option>
+                            <option>Online / Virtual</option>
+                            <option>In-Person (San Francisco)</option>
+                            <option>In-Person (New York)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Events Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Event Card 1 -->
+                    <div class="glass-card glass-card-hover rounded-xl overflow-hidden flex flex-col justify-between transition border border-slate-800">
+                        <div>
+                            <div class="h-36 bg-gradient-to-r from-emerald-900 to-slate-900 relative p-4 flex flex-col justify-between">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neon-green text-slate-950 w-max">REGISTRATION OPEN</span>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">HackFest Global 2026</h3>
+                                    <span class="text-xs text-emerald-300">Organized by Apex Tech</span>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="flex justify-between text-slate-400">
+                                    <span><i class="fa-regular fa-calendar mr-1"></i> Aug 10 - Aug 14, 2026</span>
+                                    <span><i class="fa-solid fa-globe mr-1"></i> Online</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span><i class="fa-solid fa-users mr-1"></i> 482 Participants</span>
+                                    <span class="text-neon-green font-bold"><i class="fa-solid fa-trophy mr-1"></i> $15,000 Prizes</span>
+                                </div>
+                                <p class="text-slate-400 line-clamp-2">Build generative AI applications, agentic workflows, and high-performance serverless apps.</p>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-0">
+                            <button onclick="showPage('event-details')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold border border-slate-700 transition">View Details & Register</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 2 -->
+                    <div class="glass-card glass-card-hover rounded-xl overflow-hidden flex flex-col justify-between transition border border-slate-800">
+                        <div>
+                            <div class="h-36 bg-gradient-to-r from-blue-900 to-slate-900 relative p-4 flex flex-col justify-between">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-400 text-slate-950 w-max">UPCOMING</span>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Web3 & Decentralized Hack</h3>
+                                    <span class="text-xs text-cyan-300">Organized by Blockchain DAO</span>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="flex justify-between text-slate-400">
+                                    <span><i class="fa-regular fa-calendar mr-1"></i> Sep 01 - Sep 05, 2026</span>
+                                    <span><i class="fa-solid fa-location-dot mr-1"></i> SF Tech Hub</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span><i class="fa-solid fa-users mr-1"></i> 210 Participants</span>
+                                    <span class="text-cyan-400 font-bold"><i class="fa-solid fa-trophy mr-1"></i> $25,000 Prizes</span>
+                                </div>
+                                <p class="text-slate-400 line-clamp-2">Develop smart contracts, zero-knowledge proof tools, and decentralized social platforms.</p>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-0">
+                            <button onclick="showPage('event-details')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold border border-slate-700 transition">View Details</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 3 -->
+                    <div class="glass-card glass-card-hover rounded-xl overflow-hidden flex flex-col justify-between transition border border-slate-800">
+                        <div>
+                            <div class="h-36 bg-gradient-to-r from-purple-900 to-slate-900 relative p-4 flex flex-col justify-between">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-400 text-slate-950 w-max">COMPLETED</span>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">DevOps & Cloud Sprint</h3>
+                                    <span class="text-xs text-purple-300">Organized by CloudNative Guild</span>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="flex justify-between text-slate-400">
+                                    <span><i class="fa-regular fa-calendar mr-1"></i> Jul 15 - Jul 18, 2026</span>
+                                    <span><i class="fa-solid fa-globe mr-1"></i> Online</span>
+                                </div>
+                                <div class="flex justify-between text-slate-400">
+                                    <span><i class="fa-solid fa-users mr-1"></i> 640 Participants</span>
+                                    <span class="text-purple-300 font-bold"><i class="fa-solid fa-trophy mr-1"></i> $10,000 Prizes</span>
+                                </div>
+                                <p class="text-slate-400 line-clamp-2">Automated infrastructure deployment, Kubernetes operators, and observability toolings.</p>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-0">
+                            <button onclick="showPage('leaderboard')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold border border-slate-700 transition">View Winners & Leaderboard</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 6: EVENT DETAILS -->
+            <section id="view-event-details" class="dash-view hidden space-y-6">
+                <!-- Header Banner -->
+                <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+                    <div class="h-48 bg-gradient-to-r from-slate-900 via-emerald-950 to-cyan-950 p-6 flex flex-col justify-between relative">
+                        <div class="flex justify-between items-start">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-neon-green text-slate-950">LIVE EVENT</span>
+                            <span class="text-xs text-slate-300 bg-slate-900/80 px-3 py-1 rounded-full"><i class="fa-solid fa-clock text-yellow-400 mr-1"></i> Registration Closes in 12 hours</span>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-extrabold text-white">HackFest Global 2026</h1>
+                            <p class="text-xs text-slate-300 mt-1">Organized by <strong class="text-neon-green">Apex Tech Systems</strong> &bull; Virtual Event</p>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-slate-900/80 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex space-x-6 text-xs text-slate-300">
+                            <div><span class="text-slate-500 block text-[10px]">TOTAL PRIZES</span> <strong class="text-neon-green text-sm">$15,000</strong></div>
+                            <div><span class="text-slate-500 block text-[10px]">TEAM SIZE</span> <strong class="text-white text-sm">2 - 4 Members</strong></div>
+                            <div><span class="text-slate-500 block text-[10px]">PARTICIPANTS</span> <strong class="text-white text-sm">482 Registered</strong></div>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="triggerToast('Already registered for HackFest Global 2026!', 'info')" class="px-5 py-2.5 rounded-xl bg-neon-green text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20">Registered as Parash</button>
+                            <button onclick="showPage('team-management')" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold hover:bg-slate-700">Manage Team</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Timeline -->
+                <div class="glass-card p-6 rounded-xl space-y-4">
+                    <h3 class="font-bold text-white text-sm">Event Timeline & Roadmap</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 text-center">
+                        <div class="p-3 bg-slate-900 rounded-lg border border-emerald-500/30 text-xs">
+                            <div class="text-[10px] text-emerald-400 font-bold">COMPLETED</div>
+                            <div class="font-semibold text-white mt-1">Registration Opens</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">Aug 01</div>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-lg border border-yellow-500/30 text-xs">
+                            <div class="text-[10px] text-yellow-400 font-bold">IN PROGRESS</div>
+                            <div class="font-semibold text-white mt-1">Registration Closes</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">Aug 10</div>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+                            <div class="text-[10px] text-slate-500 font-bold">UPCOMING</div>
+                            <div class="font-semibold text-white mt-1">Hackathon Begins</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">Aug 11</div>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+                            <div class="text-[10px] text-slate-500 font-bold">UPCOMING</div>
+                            <div class="font-semibold text-white mt-1">Project Submission</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">Aug 13</div>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+                            <div class="text-[10px] text-slate-500 font-bold">UPCOMING</div>
+                            <div class="font-semibold text-white mt-1">Judging Review</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">Aug 14</div>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+                            <div class="text-[10px] text-slate-500 font-bold">UPCOMING</div>
+                            <div class="font-semibold text-white mt-1">Winners Announced</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">Aug 15</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Details Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="glass-card p-6 rounded-xl space-y-3">
+                            <h3 class="font-bold text-white text-base">Overview & Objectives</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                HackFest Global 2026 challenges creators to build transformative digital solutions. Whether you are building intelligent AI agents, real-time developer productivity tools, or scalable web software, this hackathon provides mentorship, cloud credits, and recognition.
+                            </p>
+                        </div>
+                        <div class="glass-card p-6 rounded-xl space-y-3">
+                            <h3 class="font-bold text-white text-base">Rules & Submission Criteria</h3>
+                            <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+                                <li>All code must be written during the official hackathon timeline.</li>
+                                <li>Teams can consist of 2 to 4 registered participants.</li>
+                                <li>Projects must include a public GitHub repository link and a 2-minute video presentation.</li>
+                                <li>Plagiarism or pre-built commercial software is strictly prohibited.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Judges & Mentors Quick List -->
+                    <div class="space-y-6">
+                        <div class="glass-card p-6 rounded-xl space-y-4">
+                            <h3 class="font-bold text-white text-sm">Assigned Judges</h3>
+                            <div class="space-y-3 text-xs">
+                                <div class="flex items-center space-x-3">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full">
+                                    <div>
+                                        <div class="font-semibold text-white">Dr. Aris Thorne</div>
+                                        <div class="text-[10px] text-slate-400">VP of AI, TechCorp</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full">
+                                    <div>
+                                        <div class="font-semibold text-white">Sarah Jenkins</div>
+                                        <div class="text-[10px] text-slate-400">Principal Architect, CloudScale</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card p-6 rounded-xl space-y-4">
+                            <h3 class="font-bold text-white text-sm">Event Mentors</h3>
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center space-x-2">
+                                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-6 h-6 rounded-full">
+                                    <span class="text-slate-300">Elena Rostova (Full Stack)</span>
+                                </div>
+                                <button onclick="showPage('mentor')" class="text-neon-green text-[11px] hover:underline">Book Session</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 7: TEAM MANAGEMENT -->
+            <section id="view-team-management" class="dash-view hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Team Management</h1>
+                        <p class="text-xs text-slate-400 mt-1">Manage team members, assign skill roles, and copy instant join codes.</p>
+                    </div>
+                    <button onclick="triggerToast('Invite code copied to clipboard: T-NEURAL-2026', 'success')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-neon-green border border-emerald-500/30 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-copy mr-1.5"></i> Copy Team Invite Code
+                    </button>
+                </div>
+
+                <!-- Team Info Header Card -->
+                <div class="glass-card p-6 rounded-xl space-y-4 border border-slate-800">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded uppercase border border-emerald-500/20">Active Project Team</span>
+                            <h2 class="text-xl font-bold text-white mt-1">Team NeuralCraft</h2>
+                            <p class="text-xs text-slate-400">Project: Generative Knowledge Engine for Developers</p>
+                        </div>
+                        <div class="text-xs text-right">
+                            <div class="text-slate-400">Submission Status</div>
+                            <span class="inline-block px-2.5 py-1 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-bold mt-1">Draft Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Members Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Member 1 -->
+                    <div class="glass-card p-4 rounded-xl space-y-3 text-center relative border border-slate-800">
+                        <span class="absolute top-3 right-3 text-[10px] bg-neon-green text-slate-950 font-bold px-2 py-0.5 rounded">LEADER</span>
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-emerald-500">
+                        <div>
+                            <h3 class="font-bold text-white text-sm">Parash Sharma</h3>
+                            <div class="text-[11px] text-slate-400">Full Stack Developer</div>
+                        </div>
+                        <div class="flex flex-wrap gap-1 justify-center pt-1">
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Django</span>
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">React</span>
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">PostgreSQL</span>
+                        </div>
+                    </div>
+
+                    <!-- Member 2 -->
+                    <div class="glass-card p-4 rounded-xl space-y-3 text-center border border-slate-800">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-slate-700">
+                        <div>
+                            <h3 class="font-bold text-white text-sm">Alex Rivera</h3>
+                            <div class="text-[11px] text-slate-400">AI / ML Specialist</div>
+                        </div>
+                        <div class="flex flex-wrap gap-1 justify-center pt-1">
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">PyTorch</span>
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">LangChain</span>
+                        </div>
+                    </div>
+
+                    <!-- Member 3 -->
+                    <div class="glass-card p-4 rounded-xl space-y-3 text-center border border-slate-800">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-slate-700">
+                        <div>
+                            <h3 class="font-bold text-white text-sm">Maya Patel</h3>
+                            <div class="text-[11px] text-slate-400">UI/UX Designer</div>
+                        </div>
+                        <div class="flex flex-wrap gap-1 justify-center pt-1">
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Figma</span>
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Tailwind</span>
+                        </div>
+                    </div>
+
+                    <!-- Invite Slot Card -->
+                    <div class="glass-card p-4 rounded-xl flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-800 hover:border-slate-700 transition">
+                        <div class="w-12 h-12 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-user-plus text-lg"></i>
+                        </div>
+                        <h4 class="text-xs font-bold text-white">Invite Teammate</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">1 slot available (Max 4)</p>
+                        <button onclick="triggerToast('Invitation code: T-NEURAL-2026 copied!', 'success')" class="mt-3 px-3 py-1.5 bg-slate-800 text-cyan-400 hover:bg-slate-700 rounded text-xs transition">Send Code</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 8: PROJECT SUBMISSION WIZARD -->
+            <section id="view-submit-project" class="dash-view hidden space-y-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Project Submission Wizard</h1>
+                    <p class="text-xs text-slate-400 mt-1">Complete all steps to submit your project for judging in HackFest Global 2026.</p>
+                </div>
+
+                <!-- Wizard Progress Indicator -->
+                <div class="glass-card p-4 rounded-xl border border-slate-800">
+                    <div class="grid grid-cols-5 gap-2 text-center text-xs">
+                        <div class="wizard-step font-bold text-neon-green pb-1 border-b-2 border-neon-green" id="step-tab-1">1. Information</div>
+                        <div class="wizard-step font-semibold text-slate-500 pb-1 border-b-2 border-slate-800" id="step-tab-2">2. Technical Stack</div>
+                        <div class="wizard-step font-semibold text-slate-500 pb-1 border-b-2 border-slate-800" id="step-tab-3">3. Links & Code</div>
+                        <div class="wizard-step font-semibold text-slate-500 pb-1 border-b-2 border-slate-800" id="step-tab-4">4. Review</div>
+                        <div class="wizard-step font-semibold text-slate-500 pb-1 border-b-2 border-slate-800" id="step-tab-5">5. Confirmation</div>
+                    </div>
+                </div>
+
+                <!-- Form Wizard Steps -->
+                <form id="projectForm" onsubmit="handleProjectSubmit(event)" class="glass-card p-6 rounded-xl space-y-6">
+                    <!-- STEP 1 CONTENT -->
+                    <div id="wizard-step-1" class="space-y-4">
+                        <h3 class="font-bold text-white text-sm border-b border-slate-800 pb-2">Step 1: Project Basic Details</h3>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Project Name *</label>
+                            <input type="text" required value="NeuralCraft AI Engine" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-green">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Short Elevator Pitch (Max 150 chars) *</label>
+                            <input type="text" required value="Automated contextual code analysis and repository documentation using local LLM models." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-green">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Problem Statement & Solution *</label>
+                            <textarea rows="4" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-white focus:outline-none focus:border-neon-green">Developers waste up to 30% of their time parsing undocumented legacy codebases. NeuralCraft parses repositories into structured vector memory, giving instant precise answers.</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Action Bar -->
+                    <div class="flex justify-between items-center pt-4 border-t border-slate-800">
+                        <button type="button" onclick="triggerToast('Draft saved successfully to local database', 'info')" class="px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg text-xs font-semibold">Save Draft</button>
+                        <button type="submit" class="px-6 py-2 bg-neon-green hover:bg-emerald-400 text-slate-950 rounded-lg text-xs font-bold transition">Submit Final Evaluation Project</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- VIEW 9: JUDGE DASHBOARD -->
+            <section id="view-judge-dashboard" class="dash-view hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Judge Portal & Dashboard</h1>
+                        <p class="text-xs text-slate-400 mt-1">Welcome, Dr. Aris Thorne. You are assigned to evaluate 5 projects for HackFest 2026.</p>
+                    </div>
+                    <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold rounded">Active Evaluator Role</span>
+                </div>
+
+                <!-- Judge Metrics -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Assigned Projects</div>
+                        <div class="text-2xl font-bold text-white mt-1">5</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Completed Reviews</div>
+                        <div class="text-2xl font-bold text-emerald-400 mt-1">3</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Pending Reviews</div>
+                        <div class="text-2xl font-bold text-yellow-400 mt-1">2</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Your Average Score</div>
+                        <div class="text-2xl font-bold text-cyan-400 mt-1">84.2 / 100</div>
+                    </div>
+                </div>
+
+                <!-- Pending Projects Table -->
+                <div class="glass-card p-6 rounded-xl space-y-4">
+                    <h3 class="font-bold text-white text-sm">Assigned Projects for Review</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-3">Project</th>
+                                    <th class="p-3">Team</th>
+                                    <th class="p-3">Tech Stack</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                <tr>
+                                    <td class="p-3 font-semibold text-white">NeuralCraft AI Engine</td>
+                                    <td class="p-3">Team NeuralCraft</td>
+                                    <td class="p-3">Django, Python, OpenAI, React</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-yellow-500/10 text-yellow-400 rounded text-[10px] font-bold">Pending Review</span></td>
+                                    <td class="p-3 text-right">
+                                        <button onclick="showPage('project-judging')" class="px-3 py-1 bg-neon-green hover:bg-emerald-400 text-slate-950 font-bold rounded">Evaluate Project</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-semibold text-white">CloudMesh Sentinel</td>
+                                    <td class="p-3">Apex Coders</td>
+                                    <td class="p-3">Go, Kubernetes, Prometheus</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-bold">Reviewed (92/100)</span></td>
+                                    <td class="p-3 text-right">
+                                        <button onclick="showPage('project-judging')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded">Edit Score</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 10: PROJECT EVALUATION / RUBRIC -->
+            <section id="view-project-judging" class="dash-view hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Evaluating: NeuralCraft AI Engine</h1>
+                        <p class="text-xs text-slate-400 mt-1">Submitted by Team NeuralCraft &bull; HackFest Global 2026</p>
+                    </div>
+                    <button onclick="showPage('judge')" class="px-3 py-1.5 bg-slate-800 text-slate-300 hover:text-white rounded text-xs">Back to List</button>
+                </div>
+
+                <!-- Project Links Box -->
+                <div class="glass-card p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between text-xs border border-slate-800">
+                    <div class="flex space-x-4">
+                        <a href="https://github.com" target="_blank" class="text-cyan-400 hover:underline flex items-center"><i class="fa-brands fa-github mr-1"></i> GitHub Repository</a>
+                        <a href="https://demo.com" target="_blank" class="text-neon-green hover:underline flex items-center"><i class="fa-solid fa-external-link mr-1"></i> Live Demo</a>
+                    </div>
+                    <span class="text-slate-400">Technologies: <span class="text-white">Django, Tailwind, Python, PostgreSQL</span></span>
+                </div>
+
+                <!-- Rubric Form -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 glass-card p-6 rounded-xl space-y-6">
+                        <h3 class="font-bold text-white text-base border-b border-slate-800 pb-2">Scoring Rubric (0 to 10 scale)</h3>
+
+                        <!-- Criteria Inputs -->
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-semibold text-slate-200">Innovation & Originality (Weight: 20%)</span>
+                                    <span id="val-inno" class="font-bold text-neon-green">9 / 10</span>
+                                </div>
+                                <input type="range" min="0" max="10" value="9" oninput="calculateRubricScore()" id="score-inno" class="w-full accent-emerald-400 bg-slate-800 rounded">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-semibold text-slate-200">Technical Complexity & Architecture (Weight: 25%)</span>
+                                    <span id="val-tech" class="font-bold text-neon-green">8 / 10</span>
+                                </div>
+                                <input type="range" min="0" max="10" value="8" oninput="calculateRubricScore()" id="score-tech" class="w-full accent-emerald-400 bg-slate-800 rounded">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-semibold text-slate-200">UI / UX Design & Aesthetics (Weight: 20%)</span>
+                                    <span id="val-ui" class="font-bold text-neon-green">9 / 10</span>
+                                </div>
+                                <input type="range" min="0" max="10" value="9" oninput="calculateRubricScore()" id="score-ui" class="w-full accent-emerald-400 bg-slate-800 rounded">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-semibold text-slate-200">Real-World Impact & Feasibility (Weight: 20%)</span>
+                                    <span id="val-impact" class="font-bold text-neon-green">8 / 10</span>
+                                </div>
+                                <input type="range" min="0" max="10" value="8" oninput="calculateRubricScore()" id="score-impact" class="w-full accent-emerald-400 bg-slate-800 rounded">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-semibold text-slate-200">Presentation & Video Clarity (Weight: 15%)</span>
+                                    <span id="val-pres" class="font-bold text-neon-green">9 / 10</span>
+                                </div>
+                                <input type="range" min="0" max="10" value="9" oninput="calculateRubricScore()" id="score-pres" class="w-full accent-emerald-400 bg-slate-800 rounded">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Constructive Judge Feedback</label>
+                            <textarea rows="3" placeholder="Excellent execution of full-stack integration with Django back-end..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-white focus:outline-none focus:border-neon-green"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Total Score Summary Card -->
+                    <div class="glass-card p-6 rounded-xl flex flex-col justify-between space-y-6">
+                        <div>
+                            <h3 class="font-bold text-white text-sm">Calculated Final Score</h3>
+                            <div class="text-center py-8">
+                                <div id="totalScoreCalculated" class="text-5xl font-extrabold text-neon-green">86.5</div>
+                                <div class="text-xs text-slate-400 mt-2">out of 100 maximum points</div>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <button onclick="triggerToast('Draft saved successfully', 'info')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg border border-slate-700">Save Evaluation Draft</button>
+                            <button onclick="triggerToast('Evaluation submitted! Live Leaderboard updated automatically.', 'success'); showPage('leaderboard');" class="w-full py-2.5 bg-neon-green hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition shadow-lg shadow-emerald-500/20">Submit Final Evaluation</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 11: LEADERBOARD -->
+            <section id="view-leaderboard" class="dash-view hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Live Hackathon Leaderboard</h1>
+                        <p class="text-xs text-slate-400 mt-1">Real-time dynamic ranking computed from authenticated judge rubric scores.</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="text-slate-400">Event:</span>
+                        <select class="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-1.5">
+                            <option>HackFest Global 2026</option>
+                            <option>Web3 & Decentralized Hack</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Top 3 Podium Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                    <!-- 2nd Place -->
+                    <div class="glass-card p-6 rounded-xl text-center space-y-3 border-t-4 border-t-slate-300 relative order-2 md:order-1">
+                        <div class="w-12 h-12 rounded-full bg-slate-300/20 text-slate-200 flex items-center justify-center font-bold text-lg mx-auto">🥈</div>
+                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">2nd Place</span>
+                        <h3 class="font-bold text-white text-base">CloudMesh Sentinel</h3>
+                        <div class="text-2xl font-extrabold text-cyan-400">92.0 <span class="text-xs font-normal text-slate-400">pts</span></div>
+                        <p class="text-xs text-slate-400">Apex Coders &bull; 3 Judges</p>
+                    </div>
+
+                    <!-- 1st Place -->
+                    <div class="glass-card p-6 rounded-xl text-center space-y-3 border-t-4 border-t-yellow-400 relative order-1 md:order-2 neon-glow-green scale-105">
+                        <div class="w-14 h-14 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold text-2xl mx-auto">🥇</div>
+                        <span class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest">CHAMPION</span>
+                        <h3 class="font-bold text-white text-lg">NeuralCraft AI Engine</h3>
+                        <div class="text-3xl font-extrabold text-neon-green">98.5 <span class="text-xs font-normal text-slate-400">pts</span></div>
+                        <p class="text-xs text-slate-300">Team NeuralCraft &bull; 4 Judges Verified</p>
+                    </div>
+
+                    <!-- 3rd Place -->
+                    <div class="glass-card p-6 rounded-xl text-center space-y-3 border-t-4 border-t-amber-600 relative order-3">
+                        <div class="w-12 h-12 rounded-full bg-amber-600/20 text-amber-500 flex items-center justify-center font-bold text-lg mx-auto">🥉</div>
+                        <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">3rd Place</span>
+                        <h3 class="font-bold text-white text-base">ZeroVault Web3</h3>
+                        <div class="text-2xl font-extrabold text-amber-400">89.4 <span class="text-xs font-normal text-slate-400">pts</span></div>
+                        <p class="text-xs text-slate-400">DecentralHackers &bull; 3 Judges</p>
+                    </div>
+                </div>
+
+                <!-- Full Leaderboard Table -->
+                <div class="glass-card p-6 rounded-xl space-y-4">
+                    <h3 class="font-bold text-white text-sm">Complete Ranking Table</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-3">Rank</th>
+                                    <th class="p-3">Team</th>
+                                    <th class="p-3">Project Title</th>
+                                    <th class="p-3">Judges Count</th>
+                                    <th class="p-3">Total Score</th>
+                                    <th class="p-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                <tr class="bg-emerald-500/5">
+                                    <td class="p-3 font-bold text-neon-green">#1</td>
+                                    <td class="p-3 font-semibold text-white">Team NeuralCraft</td>
+                                    <td class="p-3">NeuralCraft AI Engine</td>
+                                    <td class="p-3">4 / 4 Evaluated</td>
+                                    <td class="p-3 font-bold text-neon-green">98.5</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-bold">Verified Winner</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-slate-300">#2</td>
+                                    <td class="p-3 font-semibold text-white">Apex Coders</td>
+                                    <td class="p-3">CloudMesh Sentinel</td>
+                                    <td class="p-3">3 / 4 Evaluated</td>
+                                    <td class="p-3 font-bold text-cyan-400">92.0</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 rounded text-[10px] font-bold">Runner Up</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-amber-500">#3</td>
+                                    <td class="p-3 font-semibold text-white">DecentralHackers</td>
+                                    <td class="p-3">ZeroVault Web3</td>
+                                    <td class="p-3">3 / 4 Evaluated</td>
+                                    <td class="p-3 font-bold text-amber-400">89.4</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded text-[10px] font-bold">Bronze</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 12: MENTOR DASHBOARD -->
+            <section id="view-mentor-dashboard" class="dash-view hidden space-y-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Mentor Command Center</h1>
+                    <p class="text-xs text-slate-400 mt-1">Welcome, Elena Rostova. Guide hackathon participants and review technical help requests.</p>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Assigned Teams</div>
+                        <div class="text-2xl font-bold text-white mt-1">4</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Pending Requests</div>
+                        <div class="text-2xl font-bold text-yellow-400 mt-1">2</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Office Hours Today</div>
+                        <div class="text-2xl font-bold text-cyan-400 mt-1">3 Sessions</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <div class="text-xs text-slate-400">Rating</div>
+                        <div class="text-2xl font-bold text-neon-green mt-1">4.9 / 5.0</div>
+                    </div>
+                </div>
+
+                <!-- Mentorship Requests -->
+                <div class="glass-card p-6 rounded-xl space-y-4">
+                    <h3 class="font-bold text-white text-sm">Active Mentorship Help Requests</h3>
+                    <div class="space-y-3">
+                        <div class="p-4 bg-slate-900 rounded-lg border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <span class="text-xs font-bold text-white">Team NeuralCraft &bull; Django API Debugging</span>
+                                <p class="text-xs text-slate-400 mt-1">Need assistance setting up asynchronous CORS headers between React frontend and Django backend.</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="triggerToast('Session accepted! Meeting link sent to team.', 'success')" class="px-3 py-1.5 bg-neon-green hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded">Accept Session</button>
+                                <button onclick="triggerToast('Message sent to team leader', 'info')" class="px-3 py-1.5 bg-slate-800 text-slate-300 hover:text-white text-xs rounded">Chat</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 13: ADMIN DASHBOARD -->
+            <section id="view-admin-dashboard" class="dash-view hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Organizer / Admin Control Panel</h1>
+                        <p class="text-xs text-slate-400 mt-1">System analytics, role assignments, event publishing, and automated background jobs.</p>
+                    </div>
+                    <button onclick="showPage('create-event')" class="px-4 py-2 bg-neon-green hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> Create New Event
+                    </button>
+                </div>
+
+                <!-- SaaS Core Metrics Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="glass-card p-3.5 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase">Total Users</span>
+                        <div class="text-xl font-bold text-white mt-1">2,540</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase">Active Events</span>
+                        <div class="text-xl font-bold text-neon-green mt-1">4</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase">Total Teams</span>
+                        <div class="text-xl font-bold text-cyan-400 mt-1">612</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase">Projects</span>
+                        <div class="text-xl font-bold text-blue-400 mt-1">1,240</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase">Judges</span>
+                        <div class="text-xl font-bold text-purple-400 mt-1">48</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase">Mentors</span>
+                        <div class="text-xl font-bold text-yellow-400 mt-1">32</div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-5 rounded-xl space-y-3">
+                        <h3 class="font-bold text-white text-xs uppercase tracking-wider">Event Registrations Over Time</h3>
+                        <div class="h-60 relative">
+                            <canvas id="regChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-xl space-y-3">
+                        <h3 class="font-bold text-white text-xs uppercase tracking-wider">Project Submissions by Technology Stack</h3>
+                        <div class="h-60 relative">
+                            <canvas id="techChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 14: EVENT MANAGEMENT TABLE -->
+            <section id="view-admin-events" class="dash-view hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Event Management</h1>
+                        <p class="text-xs text-slate-400 mt-1">Manage created hackathons, set deadlines, and manage judges.</p>
+                    </div>
+                    <button onclick="showPage('create-event')" class="px-4 py-2 bg-neon-green text-slate-950 font-bold text-xs rounded-lg">+ Create Event</button>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                            <tr>
+                                <th class="p-3">Event Name</th>
+                                <th class="p-3">Organizer</th>
+                                <th class="p-3">Start Date</th>
+                                <th class="p-3">Participants</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            <tr>
+                                <td class="p-3 font-bold text-white">HackFest Global 2026</td>
+                                <td class="p-3">Apex Tech</td>
+                                <td class="p-3">Aug 10, 2026</td>
+                                <td class="p-3">482</td>
+                                <td class="p-3"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-bold">ONGOING</span></td>
+                                <td class="p-3 text-right space-x-2">
+                                    <button onclick="showPage('event-details')" class="text-cyan-400 hover:underline">View</button>
+                                    <button onclick="triggerToast('Event settings modified', 'info')" class="text-slate-400 hover:underline">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VIEW 15: CREATE EVENT FORM -->
+            <section id="view-create-event" class="dash-view hidden space-y-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Create New Event / Hackathon</h1>
+                    <p class="text-xs text-slate-400 mt-1">Configure event rules, timelines, prize pools, and assign judges.</p>
+                </div>
+
+                <form onsubmit="handleCreateEvent(event)" class="glass-card p-6 rounded-xl space-y-4 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-medium text-slate-300 mb-1">Event Name *</label>
+                            <input type="text" required placeholder="e.g. AI World Hackathon 2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-300 mb-1">Prize Pool ($ USD) *</label>
+                            <input type="number" required placeholder="20000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block font-medium text-slate-300 mb-1">Start Date *</label>
+                            <input type="date" required value="2026-08-15" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-300 mb-1">Submission Deadline *</label>
+                            <input type="date" required value="2026-08-18" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-300 mb-1">Max Team Size *</label>
+                            <input type="number" value="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Description & Guidelines</label>
+                        <textarea rows="4" placeholder="Detail the guidelines and scoring rubric..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="showPage('admin-events')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                        <button type="submit" class="px-6 py-2 bg-neon-green text-slate-950 font-bold rounded">Publish Event</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- VIEW 16: USER MANAGEMENT -->
+            <section id="view-admin-users" class="dash-view hidden space-y-6">
+                <h1 class="text-2xl font-bold text-white">User Management & Permissions</h1>
+                <div class="glass-card p-6 rounded-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                            <tr>
+                                <th class="p-3">User</th>
+                                <th class="p-3">Role</th>
+                                <th class="p-3">Events Joined</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            <tr>
+                                <td class="p-3 font-semibold text-white">Parash Sharma</td>
+                                <td class="p-3"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px]">Participant</span></td>
+                                <td class="p-3">3 Events</td>
+                                <td class="p-3"><span class="text-neon-green">Active</span></td>
+                                <td class="p-3 text-right"><button onclick="triggerToast('User details opened', 'info')" class="text-cyan-400 hover:underline">Edit</button></td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-semibold text-white">Dr. Aris Thorne</td>
+                                <td class="p-3"><span class="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 rounded text-[10px]">Judge</span></td>
+                                <td class="p-3">5 Reviews</td>
+                                <td class="p-3"><span class="text-neon-green">Active</span></td>
+                                <td class="p-3 text-right"><button onclick="triggerToast('User details opened', 'info')" class="text-cyan-400 hover:underline">Edit</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VIEW 17: ANNOUNCEMENTS -->
+            <section id="view-announcements" class="dash-view hidden space-y-6">
+                <h1 class="text-2xl font-bold text-white">Broadcast Announcement Engine</h1>
+                <form onsubmit="handlePublishAnnouncement(event)" class="glass-card p-6 rounded-xl space-y-4 text-xs">
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Title *</label>
+                        <input type="text" id="annTitle" required placeholder="Important submission update..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Broadcast Message *</label>
+                        <textarea id="annMsg" rows="3" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-neon-green"></textarea>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-neon-green text-slate-950 font-bold rounded">Publish Announcement</button>
+                </form>
+            </section>
+
+            <!-- VIEW 18: NOTIFICATIONS -->
+            <section id="view-notifications" class="dash-view hidden space-y-6">
+                <h1 class="text-2xl font-bold text-white">Notification Center</h1>
+                <div class="glass-card p-6 rounded-xl space-y-3 text-xs">
+                    <div class="p-3 bg-slate-900/80 rounded border-l-4 border-l-neon-green flex justify-between">
+                        <span>Your team "NeuralCraft" has been registered for HackFest 2026.</span>
+                        <span class="text-slate-500">10m ago</span>
+                    </div>
+                    <div class="p-3 bg-slate-900/80 rounded border-l-4 border-l-yellow-400 flex justify-between">
+                        <span>Project submission deadline is tomorrow at 11:59 PM.</span>
+                        <span class="text-slate-500">2h ago</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 19: REPORTS -->
+            <section id="view-reports" class="dash-view hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-white">SaaS Analytics & Reports</h1>
+                    <div class="space-x-2">
+                        <button onclick="triggerToast('PDF Report generated and downloaded!', 'success')" class="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700">Export PDF</button>
+                        <button onclick="triggerToast('Excel sheet downloaded!', 'success')" class="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700">Export Excel</button>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-xl">
+                    <p class="text-xs text-slate-400">Complete breakdown of judge response rates, team velocity, and tech submission distributions.</p>
+                </div>
+            </section>
+
+            <!-- VIEW 20: PROFILE -->
+            <section id="view-profile" class="dash-view hidden space-y-6">
+                <h1 class="text-2xl font-bold text-white">User Profile & Settings</h1>
+                <div class="glass-card p-6 rounded-xl space-y-4 max-w-2xl text-xs">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-16 h-16 rounded-full object-cover border-2 border-neon-green">
+                        <div>
+                            <h2 class="text-base font-bold text-white">Parash Sharma</h2>
+                            <p class="text-slate-400">Software Engineering Student @ University</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="block text-slate-400 mb-1">GitHub Profile</label>
+                            <input type="text" value="https://github.com/parash-dev" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">LinkedIn Profile</label>
+                            <input type="text" value="https://linkedin.com/in/parash" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white">
+                        </div>
+                    </div>
+                    <button onclick="triggerToast('Profile changes saved successfully', 'success')" class="px-4 py-2 bg-neon-green text-slate-950 font-bold rounded">Save Profile</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<script>
+    // Current Active Role & User Data State
+    let currentRole = 'participant'; // Default role
+    let currentView = 'participant-dashboard';
+
+    // Role Configuration Mapping
+    const roleConfig = {
+        guest: {
+            name: 'Guest User',
+            roleName: 'Public',
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+            nav: []
+        },
+        participant: {
+            name: 'Parash Sharma',
+            roleName: 'Participant',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+            nav: [
+                { id: 'participant-dashboard', label: 'Dashboard', icon: 'fa-house' },
+                { id: 'discover', label: 'Discover Events', icon: 'fa-compass' },
+                { id: 'team-management', label: 'My Team', icon: 'fa-users' },
+                { id: 'submit-project', label: 'Submit Project', icon: 'fa-code-commit' },
+                { id: 'leaderboard', label: 'Leaderboard', icon: 'fa-trophy' },
+                { id: 'notifications', label: 'Notifications', icon: 'fa-bell' },
+                { id: 'profile', label: 'My Profile', icon: 'fa-user' }
+            ]
+        },
+        judge: {
+            name: 'Dr. Aris Thorne',
+            roleName: 'Judge / Evaluator',
+            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80',
+            nav: [
+                { id: 'judge-dashboard', label: 'Judge Dashboard', icon: 'fa-gavel' },
+                { id: 'project-judging', label: 'Project Evaluation', icon: 'fa-square-check' },
+                { id: 'leaderboard', label: 'Live Leaderboard', icon: 'fa-trophy' },
+                { id: 'profile', label: 'Profile', icon: 'fa-user' }
+            ]
+        },
+        mentor: {
+            name: 'Elena Rostova',
+            roleName: 'Mentor',
+            avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80',
+            nav: [
+                { id: 'mentor-dashboard', label: 'Mentor Dashboard', icon: 'fa-chalkboard-user' },
+                { id: 'notifications', label: 'Mentorship Calls', icon: 'fa-comments' },
+                { id: 'profile', label: 'Profile', icon: 'fa-user' }
+            ]
+        },
+        admin: {
+            name: 'SysAdmin / Organizer',
+            roleName: 'Admin',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+            nav: [
+                { id: 'admin-dashboard', label: 'Admin Analytics', icon: 'fa-chart-pie' },
+                { id: 'admin-events', label: 'Manage Events', icon: 'fa-calendar-days' },
+                { id: 'create-event', label: 'Create Event', icon: 'fa-plus-circle' },
+                { id: 'admin-users', label: 'User Directory', icon: 'fa-users-gear' },
+                { id: 'announcements', label: 'Announcements', icon: 'fa-bullhorn' },
+                { id: 'reports', label: 'System Reports', icon: 'fa-file-invoice' }
+            ]
+        }
+    };
+
+    // Role Switcher Function
+    function switchRole(roleKey) {
+        currentRole = roleKey;
+        const config = roleConfig[roleKey];
+
+        // Update UI Labels & Badges
+        document.getElementById('currentRoleLabel').innerHTML = `<i class="fa-solid fa-user-gear mr-1 text-neon-green"></i> Active Role: <strong>${config.roleName}</strong>`;
+        
+        // Highlight active role button
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.className = 'role-btn px-2.5 py-1 rounded-md text-xs font-medium transition bg-slate-800 text-slate-300 hover:text-white border border-slate-700';
+        });
+        const activeBtn = document.getElementById(`btn-role-${roleKey}`);
+        if(activeBtn) {
+            activeBtn.className = 'role-btn px-2.5 py-1 rounded-md text-xs font-medium transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        }
+
+        if (roleKey === 'guest') {
+            document.getElementById('view-landing').classList.remove('hidden');
+            document.getElementById('dashboardLayout').classList.add('hidden');
+            return;
+        }
+
+        // Show Dashboard Shell
+        document.getElementById('view-landing').classList.add('hidden');
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-register').classList.add('hidden');
+        document.getElementById('dashboardLayout').classList.remove('hidden');
+
+        // Update Profile Info in Sidebar
+        document.getElementById('userName').textContent = config.name;
+        document.getElementById('userRoleSub').textContent = config.roleName;
+        document.getElementById('userAvatar').src = config.avatar;
+        document.getElementById('roleBadge').textContent = config.roleName;
+
+        // Render Nav Links for this role
+        const navContainer = document.getElementById('sidebarNav');
+        navContainer.innerHTML = '';
+        config.nav.forEach(item => {
+            const btn = document.createElement('button');
+            btn.onclick = () => showPage(item.id);
+            btn.className = `w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition nav-item-${item.id}`;
+            btn.innerHTML = `<i class="fa-solid ${item.icon} w-4 text-slate-400"></i><span>${item.label}</span>`;
+            navContainer.appendChild(btn);
+        });
+
+        // Default redirect for role
+        if (roleKey === 'participant') showPage('participant-dashboard');
+        else if (roleKey === 'judge') showPage('judge-dashboard');
+        else if (roleKey === 'mentor') showPage('mentor-dashboard');
+        else if (roleKey === 'admin') showPage('admin-dashboard');
+
+        triggerToast(`Switched active view to ${config.roleName} role`, 'info');
+    }
+
+    // Page / View Switcher Function
+    function showPage(pageId) {
+        // If landing, login, register: handle separately
+        if (pageId === 'landing') {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-landing').classList.remove('hidden');
+            document.getElementById('dashboardLayout').classList.add('hidden');
+            window.scrollTo(0,0);
+            return;
+        }
+        if (pageId === 'login' || pageId === 'register') {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${pageId}`).classList.remove('hidden');
+            document.getElementById('dashboardLayout').classList.add('hidden');
+            return;
+        }
+
+        // Inside Dashboard Shell
+        document.getElementById('view-landing').classList.add('hidden');
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-register').classList.add('hidden');
+        document.getElementById('dashboardLayout').classList.remove('hidden');
+
+        // Hide all dash sub-views
+        document.querySelectorAll('.dash-view').forEach(view => view.classList.add('hidden'));
+
+        // Show requested view
+        const targetView = document.getElementById(`view-${pageId}`);
+        if (targetView) {
+            targetView.classList.remove('hidden');
+            currentView = pageId;
+        } else {
+            console.warn(`View view-${pageId} not found, falling back to dashboard`);
+            document.getElementById('view-participant-dashboard').classList.remove('hidden');
+        }
+
+        // Highlight active sidebar item
+        document.querySelectorAll('#sidebarNav button').forEach(btn => {
+            btn.classList.remove('bg-slate-800', 'text-white', 'border-l-2', 'border-l-neon-green');
+            btn.classList.add('text-slate-300');
+        });
+        const activeNav = document.querySelector(`.nav-item-${pageId}`);
+        if (activeNav) {
+            activeNav.classList.add('bg-slate-800', 'text-white', 'border-l-2', 'border-l-neon-green');
+        }
+
+        // If switching to admin dashboard, render charts
+        if (pageId === 'admin-dashboard') {
+            setTimeout(initAdminCharts, 100);
+        }
+    }
+
+    // Toast Notification System
+    function triggerToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        
+        let borderClass = 'border-cyan-500/30 text-cyan-300';
+        let icon = 'fa-circle-info text-cyan-400';
+        if (type === 'success') {
+            borderClass = 'border-emerald-500/30 text-emerald-300';
+            icon = 'fa-circle-check text-neon-green';
+        }
+
+        toast.className = `glass-card px-4 py-3 rounded-xl border ${borderClass} shadow-xl flex items-center space-x-3 text-xs pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0`;
+        toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+
+        container.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+            toast.classList.remove('translate-y-2', 'opacity-0');
+        }, 10);
+
+        // Remove after 3.5s
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // Interactive Rubric Calculation Logic
+    function calculateRubricScore() {
+        const inno = parseFloat(document.getElementById('score-inno').value);
+        const tech = parseFloat(document.getElementById('score-tech').value);
+        const ui = parseFloat(document.getElementById('score-ui').value);
+        const impact = parseFloat(document.getElementById('score-impact').value);
+        const pres = parseFloat(document.getElementById('score-pres').value);
+
+        document.getElementById('val-inno').textContent = `${inno} / 10`;
+        document.getElementById('val-tech').textContent = `${tech} / 10`;
+        document.getElementById('val-ui').textContent = `${ui} / 10`;
+        document.getElementById('val-impact').textContent = `${impact} / 10`;
+        document.getElementById('val-pres').textContent = `${pres} / 10`;
+
+        // Weighted Total calculation out of 100
+        const total = (inno * 2.0) + (tech * 2.5) + (ui * 2.0) + (impact * 2.0) + (pres * 1.5);
+        document.getElementById('totalScoreCalculated').textContent = total.toFixed(1);
+    }
+
+    // Auth Form Handlers
+    function handleAuthLogin(e) {
+        e.preventDefault();
+        triggerToast('Login successful! Welcome Parash.', 'success');
+        switchRole('participant');
+    }
+
+    function handleAuthRegister(e) {
+        e.preventDefault();
+        const roleSel = document.getElementById('regRoleSelect').value;
+        triggerToast(`Account created as ${roleSel}! Welcome to NerdHub.`, 'success');
+        switchRole(roleSel);
+    }
+
+    function handleProjectSubmit(e) {
+        e.preventDefault();
+        triggerToast('Project "NeuralCraft AI Engine" submitted successfully!', 'success');
+        showPage('participant-dashboard');
+    }
+
+    function handleCreateEvent(e) {
+        e.preventDefault();
+        triggerToast('New hackathon published and broadcasted to participants!', 'success');
+        showPage('admin-events');
+    }
+
+    function handlePublishAnnouncement(e) {
+        e.preventDefault();
+        const title = document.getElementById('annTitle').value;
+        triggerToast(`Announcement "${title}" broadcasted to all registered hackers!`, 'success');
+        document.getElementById('annTitle').value = '';
+        document.getElementById('annMsg').value = '';
+    }
+
+    function scrollToSection(id) {
+        document.getElementById('view-landing').classList.remove('hidden');
+        document.getElementById('dashboardLayout').classList.add('hidden');
+        const elem = document.getElementById(id);
+        if(elem) elem.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Initialize Chart.js Instance for Admin
+    let regChartInstance = null;
+    let techChartInstance = null;
+
+    function initAdminCharts() {
+        const regCtx = document.getElementById('regChart');
+        const techCtx = document.getElementById('techChart');
+
+        if (!regCtx || !techCtx) return;
+
+        if (regChartInstance) regChartInstance.destroy();
+        if (techChartInstance) techChartInstance.destroy();
+
+        regChartInstance = new Chart(regCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Registrations',
+                    data: [120, 240, 450, 680, 920, 1400, 1820],
+                    borderColor: '#00FFA3',
+                    backgroundColor: 'rgba(0, 255, 163, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                }
+            }
+        });
+
+        techChartInstance = new Chart(techCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Python / Django', 'React / Next.js', 'Web3 / Solidity', 'Go / Cloud', 'AI / PyTorch'],
+                datasets: [{
+                    data: [35, 25, 15, 15, 10],
+                    backgroundColor: ['#00FFA3', '#06B6D4', '#3B82F6', '#8B5CF6', '#F59E0B'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 10 } } } }
+            }
+        });
+    }
+
+    // Window Onload Setup
+    window.onload = function() {
+        switchRole('participant'); // Default start view as participant for direct rich preview
+        triggerToast('Welcome to NerdHub SaaS Platform Prototype!', 'success');
+    };
+</script>
+</body>
+</html>
