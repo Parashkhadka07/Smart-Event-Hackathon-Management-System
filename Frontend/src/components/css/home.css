@@ -1,4 +1,50 @@
-.homename{
-    height: 500px;
-    background-color: brown;
+.hero {
+  display: flex;
+  height: 100vh;
+  background-color: rgb(248, 226, 229);
+  padding: 10% 5% 0 5%;
+}
+
+.left {
+  height: 100vh;
+  width: 50%;
+  background-color: transparent;
+}
+.right {
+  height: 100vh;
+  width: 50%;
+  background-color: transparent;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 2%;
+  width: 70%;
+  background-color: rgba(255, 255, 255, 0.3);
+  height: 30px;
+  border-radius: 20px;
+  padding-left: 4%;
+}
+
+.new {
+  background-color: pink;
+  border-radius: 50px;
+  width: 12%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+.top_text {
+  font-weight: bold;
+}
+.big_text {
+  margin-top: 6%;
+}
+
+.text {
+  font-weight: 50px;
+}
+.coloured_text {
+  font-weight: 900;
 }

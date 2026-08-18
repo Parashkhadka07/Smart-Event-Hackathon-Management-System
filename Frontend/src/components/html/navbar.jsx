@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "../css/navbar.css";
 import Logo from "./logo";
+import Button from "./Button";
 const Navbar = () => {
   const [activeLink, setActiveLink] = useState("Home");
 
@@ -24,8 +25,8 @@ const Navbar = () => {
         </ul>
 
         <ul className="user">
-          <li>Login</li>
-          <li>Register Now</li>
+          <Button name='Login'/>
+          <Button name='Register'/>
         </ul>
       </div>
     </>

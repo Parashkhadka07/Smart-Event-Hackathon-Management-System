@@ -1,0 +1,15 @@
+.button{color: rgb(245, 218, 218);
+  display: flex;
+  background: linear-gradient(to right, rgb(255, 111, 135), rgb(201, 165, 165));
+  height: 2rem;
+  width: 7rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;}
+
+ .button:hover{
+  background: black;
+  color: rgb(229, 233, 235);
+  /* transition: background 0.3s ease, color 0.3s ease; */
+
+}
