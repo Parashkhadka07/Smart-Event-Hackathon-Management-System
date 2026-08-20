@@ -197,26 +197,88 @@
   background-color: pink;
   margin-top: -100px;
 }
-.number{
-    font-size:xx-large;
-    font-weight:bolder;
-   text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
-    
+.number {
+  font-size: xx-large;
+  font-weight: bolder;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
 }
-.hosted{
-    color: white;
-    
+.hosted {
+  color: white;
 }
-.active{
-    color: rgb(0, 185, 123);
+.active {
+  color: rgb(0, 185, 123);
 }
-.teams{
-    color: rgb(72, 230, 230);
+.teams {
+  color: rgb(72, 230, 230);
 }
-.project{
-    color: rgb(68, 68, 250);
+.project {
+  color: rgb(68, 68, 250);
 }
-.number_text{
-   margin: 0 0 0 -6px;
-   font-weight: bold;
+.number_text {
+  margin: 0 0 0 -6px;
+  font-weight: bold;
+}
+
+.home_bottom {
+  height: 600px;
+  background-color: rgb(248, 226, 229);
+}
+.bottom_big_text {
+  padding: 5% 0 0.8% 0;
+  color: white;
+  text-align: center;
+  font-weight: bolder;
+  font-size: 60px;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+}
+.bottom_small_text {
+  font-size: 30px;
+  color: rgb(248, 117, 139);
+  text-align: center;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+}
+.box_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 90px;
+  padding: 80px 0 40px 0;
+}
+.boxes {
+  border-radius: 15px;
+  height: 190px;
+  width: 190px;
+  border: 2px solid palevioletred;
+  box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.3);
+  
+}
+.bignumber{
+  
+  margin: 3% 0 0 37% ;
+  font-size:40px;
+  text-align: center;
+  color: white;
+  font-weight: bolder;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  border: 2px solid  palevioletred;
+  box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.3);
+  align-self: center;
+}
+.bigtext_bottom{
+  margin: 2% 0 0 0 ;
+  font-size:30px;
+  text-align: center;
+  color:  palevioletred;
+  font-weight: bolder;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+}
+.small_text_bottom{
+  margin: 3% 2% 2% 2%;
+  text-align: center;
+  font-weight: bold;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+  
 }
