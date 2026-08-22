@@ -8,7 +8,7 @@ const Logo = () => {
           <div className="name">
             <span className="firstname">Nerd</span>
             <span className="lastname">Hub</span>
-            <p className="fullname">Hackathon Management System</p>
+            <p className="full">Hackathon Management System</p>
           </div>
         </div>
     </>

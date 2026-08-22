@@ -1,0 +1,88 @@
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background-color: rgb(248, 226, 229);
+}
+
+/* Right Form Panel */
+.register-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-card h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 1.75rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.input-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Responsive Collapse for Mobile */
+@media (max-width: 768px) {
+  .register-container {
+    flex-direction: column;
+  }
+  .register-brand {
+    padding: 2rem 1.5rem;
+  }
+}
+
+.buttonn{
+    background-color: antiquewhite;
+    width: 109%;
+    height: 40px;
+}

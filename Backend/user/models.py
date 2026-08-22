@@ -6,7 +6,8 @@ class User(AbstractUser):
     ROLE_CHOICES={
         "P":"participant",
         "J":"judge",
-        "E":"employee"
+        "E":"employee",
+        "O":"organizer"
     }
     email = models.EmailField(unique=True)
     id=models.UUIDField(default=uuid.uuid4,primary_key=True,editable=False)
