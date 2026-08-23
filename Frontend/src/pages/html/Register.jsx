@@ -10,18 +10,26 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmpassword, setconfirmpassword] = useState("");
   const [role, setRole] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState({});
 
   // 2. Create state variables to track visibility toggle
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+if (role=="participant"){
+  setRole("P")
+}
+else if(role=="organizer"){
+  setRole("O")
+}
+else if(role=="")
+
   const handleregister = async(e) => {
     e.preventDefault();
-    setErrorMessage(""); 
+    
 
     if (password !== confirmpassword) {
-      setErrorMessage("Passwords do not match");
+      setErrorMessage({ password: ["Passwords do not match."] });
       return;
     }
 
@@ -32,6 +40,7 @@ const Register = () => {
     console.log("htis is the reaponse fromt he backend:",response.data)
 }
     catch(error){
+      setErrorMessage(error.response.data)
         console.error("this is  the error",error.response.data);
 
     }
@@ -48,16 +57,18 @@ const Register = () => {
           <p className="subtitle">Enter your details below to get started</p>
 
           <form onSubmit={handleregister} className="register-form">
-            {errorMessage && <p className="error-text" style={{ color: "red" }}>{errorMessage}</p>}
+            
 
             {/* Email and Username inputs stay identical... */}
             <div className="input-group">
               <label>Email</label>
               <input type="email" placeholder="name@example.com" value={email} required onChange={(e) => setEmail(e.target.value)} />
+              {errorMessage.email && <small style={{ color: "red" }}>{errorMessage.email}</small>}
             </div>
             <div className="input-group">
               <label>Username</label>
               <input type="text" placeholder="johndoe" required value={username} onChange={(e) => setUsername(e.target.value)} />
+               {errorMessage.username && <small style={{ color: "red" }}>{errorMessage.username}</small>}
             </div>
 
             {/* 3. Updated Password Field Wrapper */}
@@ -87,8 +98,11 @@ const Register = () => {
                   }}
                 >
                   {showPassword ? <EyeOff size={20} color="#666" /> : <Eye size={20} color="#666" />}
+
                 </button>
               </div>
+                 {errorMessage.password && <small style={{ color: "red" }}>{errorMessage.password}</small>}
+
             </div>
 
             {/* 4. Updated Confirm Password Field Wrapper */}
@@ -120,12 +134,17 @@ const Register = () => {
                 >
                   {showConfirmPassword ? <EyeOff size={20} color="#666" /> : <Eye size={20} color="#666" />}
                 </button>
+
               </div>
+                 {errorMessage.password && <small style={{ color: "red" }}>{errorMessage.password}</small>}
+
             </div>
 
             <div className="input-group">
               <label>Role</label>
               <input type="text" placeholder="e.g. Developer, Admin" required value={role} onChange={(e) => setRole(e.target.value)} />
+                 {errorMessage.role && <small style={{ color: "red" }}>{errorMessage.role}</small>}
+
             </div>
 
             <button type="submit" className="buttonn">Register</button>
