@@ -4,6 +4,7 @@ import Navbar from "./components/html/navbar";
 import { Footer } from "./components/html/footer";
 import Home from "./pages/html/home";
 import Register from "./pages/html/Register";
+import Login from "./pages/html/Login";
 function App() {
  
   
@@ -14,7 +15,8 @@ function App() {
     <Home/>
    
     <Footer/> */}
-    <Register/>
+    {/* <Register/> */}
+    <Login/>
     </>
   );
 }

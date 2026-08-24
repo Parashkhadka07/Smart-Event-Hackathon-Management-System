@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User ,token
 
-class CustomUserAdmin(UserAdmin):
+class CustomUserAdmin(admin.ModelAdmin):
     model = User
     list_display = ['id', 'username', 'email','password',  'role']
     search_fields = ['username', 'email']

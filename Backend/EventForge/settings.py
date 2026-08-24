@@ -125,3 +125,12 @@ STATIC_URL = 'static/'
 
 # this is for the allowed domains for sending the request to this backend
 CORS_ALLOWED_ORIGINS=["http://localhost:5173"]
+
+#this is for the jwt token 
+REST_FRAMEWORK = {
+    
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+   
+}

@@ -86,3 +86,8 @@
     width: 109%;
     height: 40px;
 }
+.role{
+  height: 40px;
+  width: 108%;
+  border-radius: 0.5rem;
+}
