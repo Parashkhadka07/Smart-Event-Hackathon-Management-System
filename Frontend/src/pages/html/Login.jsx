@@ -3,32 +3,39 @@ import "../css/register.css"; // reuse the same styling as Register
 import Logo from "../../components/html/logo";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
+import { useNavigate,Link} from "react-router-dom";
+
+
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-
+  const navigate=useNavigate()
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage({});
 
-    const userdata = { email, password };
+    const userdata = { username, password };
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/login/", // adjust to your actual login endpoint
+        "http://localhost:8000/api/v1/login/",
         userdata,
       );
       console.log("login response:", response.data);
-      // e.g. store token: localStorage-free approach recommended, but if you use one:
-      // localStorage.setItem("access", response.data.access);
+      localStorage.setItem('accessToken',response.data.access)
+      localStorage.setItem('refreshToken',response.data.refresh)
+      navigate('/')
+      alert("login sucessfull")
     } catch (error) {
       if (error.response?.data) {
         setErrorMessage(error.response.data);
       } else {
-        setErrorMessage({ non_field_errors: ["Something went wrong. Please try again."] });
+        setErrorMessage({
+          non_field_errors: ["Something went wrong. Please try again."],
+        });
       }
       console.error("login error", error.response?.data);
     }
@@ -50,13 +57,13 @@ const Login = () => {
             )}
 
             <div className="input-group">
-              <label>Email</label>
+              <label>Username</label>
               <input
-                type="email"
-                placeholder="name@example.com"
+                
+                placeholder="username"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
               {errorMessage.email && (
                 <small style={{ color: "red" }}>
@@ -71,7 +78,11 @@ const Login = () => {
               <label>Password</label>
               <div
                 className="password-wrapper"
-                style={{ position: "relative", display: "flex", alignItems: "center" }}
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                }}
               >
                 <input
                   type={showPassword ? "text" : "password"}
@@ -95,7 +106,11 @@ const Login = () => {
                     alignItems: "center",
                   }}
                 >
-                  {showPassword ? <EyeOff size={20} color="#666" /> : <Eye size={20} color="#666" />}
+                  {showPassword ? (
+                    <EyeOff size={20} color="#666" />
+                  ) : (
+                    <Eye size={20} color="#666" />
+                  )}
                 </button>
               </div>
               {errorMessage.password && (
@@ -111,7 +126,7 @@ const Login = () => {
               Login
             </button>
             <div style={{ textAlign: "center", marginTop: "15px" }}>
-              Don't have an account? <a href="#">sign up</a>
+              Don't have an account? <Link to='/register'>sign up</Link>
             </div>
           </form>
         </div>

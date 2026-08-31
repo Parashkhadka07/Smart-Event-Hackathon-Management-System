@@ -4,6 +4,7 @@ import Logo from "../../components/html/logo";
 // 1. Import the eye icons
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
 const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ const Register = () => {
   // 2. Create state variables to track visibility toggle
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   if (role == "participant") {
     setRole("P");
@@ -39,7 +41,8 @@ const Register = () => {
         "http://localhost:8000/api/v1/users/",
         userdata,
       );
-      setErrorMessage({})
+      setErrorMessage({});
+      navigate("/login");
     } catch (error) {
       setErrorMessage(error.response.data);
       console.error("this is  the error", error.response.data);
@@ -173,33 +176,32 @@ const Register = () => {
               )}
             </div>
 
-              <div className="input-group">
-                <label>Role</label>
-                <select
+            <div className="input-group">
+              <label>Role</label>
+              <select
                 className="role"
-                  required
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Select a role
-                  </option>
-                  <option value="P">participant</option>
-                  <option value="J">judge</option>
+                required
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="" disabled>
+                  Select a role
+                </option>
+                <option value="P">participant</option>
+                <option value="J">judge</option>
 
-                  <option value="O">organizer</option>
-                </select>
-              </div>
-              {errorMessage.role && (
-                <small style={{ color: "red" }}>{errorMessage.role}</small>
-              )}
-         
+                <option value="O">organizer</option>
+              </select>
+            </div>
+            {errorMessage.role && (
+              <small style={{ color: "red" }}>{errorMessage.role}</small>
+            )}
 
             <button type="submit" className="buttonn">
               Register
             </button>
             <div style={{ textAlign: "center", marginTop: "15px" }}>
-              Do you have account? <a href="#">sign in</a>
+              Do you have account? <Link to="/login">sign in</Link>
             </div>
           </form>
         </div>

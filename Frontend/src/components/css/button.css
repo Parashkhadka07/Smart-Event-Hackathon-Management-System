@@ -5,7 +5,8 @@
   width: 7rem;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;}
+  border-radius: 9px;
+}
 
  .button:hover{
   background: black;

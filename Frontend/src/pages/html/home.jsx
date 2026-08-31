@@ -4,9 +4,12 @@ import Button from "../../components/html/Button.jsx";
 import photo1 from "../../assets/images/photo1.avif";
 import photo2 from "../../assets/images/photo2.avif";
 import photo3 from "../../assets/images/photo3.avif";
+import Navbar from "../../components/html/navbar.jsx";
+import { Footer } from "../../components/html/footer.jsx";
 const Home = () => {
   return (
     <>
+    <Navbar/>
       <div className="hero">
         <div className="left">
           <div className="top">
@@ -166,6 +169,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };
