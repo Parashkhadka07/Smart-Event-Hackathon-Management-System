@@ -3,16 +3,14 @@ import "../css/register.css"; // reuse the same styling as Register
 import Logo from "../../components/html/logo";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
-import { useNavigate,Link} from "react-router-dom";
-
-
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const navigate=useNavigate()
+  const navigate = useNavigate();
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage({});
@@ -25,10 +23,10 @@ const Login = () => {
         userdata,
       );
       console.log("login response:", response.data);
-      localStorage.setItem('accessToken',response.data.access)
-      localStorage.setItem('refreshToken',response.data.refresh)
-      navigate('/')
-      alert("login sucessfull")
+      localStorage.setItem("accessToken", response.data.access);
+      localStorage.setItem("refreshToken", response.data.refresh);
+      navigate("/");
+      alert("login sucessfull");
     } catch (error) {
       if (error.response?.data) {
         setErrorMessage(error.response.data);
@@ -55,11 +53,12 @@ const Login = () => {
                 {errorMessage.non_field_errors.join(" ")}
               </p>
             )}
-
+            <div>{errorMessage.detail && (
+              <small style={{ color: "red" }}>{errorMessage.detail}</small>
+            )}</div>
             <div className="input-group">
               <label>Username</label>
               <input
-                
                 placeholder="username"
                 required
                 value={username}
@@ -126,7 +125,7 @@ const Login = () => {
               Login
             </button>
             <div style={{ textAlign: "center", marginTop: "15px" }}>
-              Don't have an account? <Link to='/register'>sign up</Link>
+              Don't have an account? <Link to="/register">sign up</Link>
             </div>
           </form>
         </div>

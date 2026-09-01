@@ -1,0 +1,187 @@
+.sidebar {
+  height: 100vh;
+  width: 260px;
+  background-color: rgb(248, 226, 229);
+  border-right: 2px solid palevioletred;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 5px 0px 15px 0px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+/* ---- Header / Brand ---- */
+.sidebar_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px;
+  border-bottom: 1.5px solid palevioletred;
+}
+
+.sidebar_logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo_mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, pink 0%, rgb(255, 0, 0) 100%);
+  color: white;
+  font-weight: 900;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.logo_text {
+  font-weight: bold;
+  font-size: 18px;
+  color: rgb(80, 30, 40);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.logo_accent {
+  color: rgb(252, 139, 139);
+}
+
+.role_badge {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: rgb(180, 60, 90);
+  border: 1px solid palevioletred;
+}
+
+/* ---- Nav ---- */
+.sidebar_nav {
+  flex: 1;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.nav_item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(90, 50, 60);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.nav_item:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav_item_active {
+  background: linear-gradient(90deg, pink 0%, rgb(255, 182, 193) 100%);
+  color: white;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.nav_icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ---- Footer / User ---- */
+.sidebar_footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-top: 1.5px solid palevioletred;
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.footer_user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.footer_avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid palevioletred;
+}
+
+.footer_userinfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.footer_name {
+  font-weight: bold;
+  font-size: 13px;
+  color: rgb(80, 30, 40);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer_role {
+  font-size: 11px;
+  color: rgb(150, 90, 100);
+}
+
+.footer_bell {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgb(150, 90, 100);
+  padding: 6px;
+}
+
+.bell_dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: rgb(255, 0, 0);
+}
+.dash_layout {
+  display: flex;
+  height: 100vh;       /* was min-height — this is the key change */
+  overflow: hidden;     /* prevent the whole page from scrolling */
+  background-color: rgb(253, 245, 246);
+}
+
+.dash_main {
+  flex: 1;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;      /* only this area scrolls */
+  height: 100vh;
+}

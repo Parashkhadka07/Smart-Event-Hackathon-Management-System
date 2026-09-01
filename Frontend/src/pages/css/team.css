@@ -1,0 +1,144 @@
+.team_header_card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.team_header_title {
+  margin-top: 8px;
+}
+
+.submission_status {
+  text-align: right;
+}
+
+.submission_label {
+  display: block;
+  font-size: 11px;
+  color: rgb(150, 90, 100);
+}
+
+.submission_badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background-color: rgba(230, 170, 30, 0.12);
+  color: rgb(200, 140, 20);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.member_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.member_card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  box-shadow: 3px 3px 14px rgba(0, 0, 0, 0.06);
+}
+
+.leader_badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, pink 0%, rgb(255, 60, 110) 100%);
+  color: white;
+}
+
+.member_card_avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid palevioletred;
+  margin: 0 auto;
+}
+
+.member_card_name {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgb(70, 30, 45);
+  margin-top: 12px;
+}
+
+.member_card_role {
+  font-size: 11px;
+  color: rgb(150, 90, 100);
+  margin-top: 2px;
+}
+
+.skill_tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.skill_tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: rgb(253, 245, 246);
+  color: rgb(150, 60, 90);
+  border: 1px solid rgb(248, 226, 229);
+}
+
+.invite_slot {
+  border: 2px dashed rgb(248, 226, 229);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.invite_slot:hover {
+  border-color: palevioletred;
+}
+
+.invite_icon_wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgb(253, 245, 246);
+  color: rgb(200, 100, 130);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.invite_title {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgb(70, 30, 45);
+}
+
+.invite_note {
+  font-size: 11px;
+  color: rgb(150, 90, 100);
+  margin-top: 2px;
+}
+
+.btn_small {
+  margin-top: 12px;
+  padding: 6px 14px;
+  font-size: 11px;
+}

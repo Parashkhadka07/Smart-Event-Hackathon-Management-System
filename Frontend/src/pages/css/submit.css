@@ -1,0 +1,18 @@
+.submit_form {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submit_section_gap {
+  margin-top: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgb(248, 226, 229);
+}
+
+.inline_icon {
+  vertical-align: middle;
+  margin-right: 4px;
+  color: rgb(220, 60, 100);
+}

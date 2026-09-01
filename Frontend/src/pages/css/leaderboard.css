@@ -1,0 +1,151 @@
+.event_select {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid palevioletred;
+  background-color: white;
+  color: rgb(90, 50, 60);
+  font-size: 12px;
+}
+
+.podium_grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: end;
+}
+
+.podium_card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 3px 3px 14px rgba(0, 0, 0, 0.06);
+  border-top: 4px solid palevioletred;
+}
+
+.podium_rank_2 {
+  border-top-color: rgb(180, 180, 190);
+}
+.podium_rank_3 {
+  border-top-color: rgb(200, 140, 80);
+}
+
+.podium_first {
+  border-top-color: rgb(230, 180, 40);
+  transform: scale(1.05);
+  box-shadow: 3px 3px 20px rgba(255, 105, 150, 0.25);
+}
+
+.podium_medal {
+  font-size: 32px;
+}
+
+.podium_label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgb(150, 90, 100);
+  margin-top: 4px;
+}
+
+.podium_team {
+  font-size: 15px;
+  font-weight: 800;
+  color: rgb(70, 30, 45);
+  margin-top: 8px;
+}
+
+.podium_score {
+  font-size: 26px;
+  font-weight: 800;
+  color: rgb(220, 60, 100);
+  margin-top: 8px;
+}
+
+.podium_score_unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(150, 90, 100);
+}
+
+.podium_judges {
+  font-size: 11px;
+  color: rgb(150, 90, 100);
+  margin-top: 4px;
+}
+
+.table_wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.rank_table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.rank_table thead {
+  background-color: rgb(253, 245, 246);
+  text-transform: uppercase;
+  font-size: 10px;
+  color: rgb(150, 90, 100);
+}
+
+.rank_table th,
+.rank_table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgb(248, 226, 229);
+}
+
+.row_winner {
+  background-color: rgba(255, 105, 150, 0.05);
+}
+
+.rank_cell {
+  font-weight: 800;
+  color: rgb(220, 60, 100);
+}
+
+.team_cell {
+  font-weight: 700;
+  color: rgb(70, 30, 45);
+}
+
+.score_cell {
+  font-weight: 800;
+  color: rgb(220, 60, 100);
+}
+
+.status_pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.status_1 {
+  background-color: rgba(60, 160, 100, 0.12);
+  color: rgb(40, 140, 80);
+}
+.status_2 {
+  background-color: rgba(60, 140, 220, 0.12);
+  color: rgb(40, 110, 190);
+}
+.status_3 {
+  background-color: rgba(200, 140, 60, 0.12);
+  color: rgb(180, 120, 40);
+}
+
+@media (max-width: 900px) {
+  .podium_grid {
+    grid-template-columns: 1fr;
+  }
+  .podium_first {
+    transform: none;
+    order: -1;
+  }
+}

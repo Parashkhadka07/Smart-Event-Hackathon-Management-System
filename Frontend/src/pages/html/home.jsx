@@ -6,6 +6,7 @@ import photo2 from "../../assets/images/photo2.avif";
 import photo3 from "../../assets/images/photo3.avif";
 import Navbar from "../../components/html/navbar.jsx";
 import { Footer } from "../../components/html/footer.jsx";
+
 const Home = () => {
   return (
     <>

@@ -9,7 +9,7 @@ const Navbar = () => {
   const [activeLink, setActiveLink] = useState("Home");
   const navigate = useNavigate();
 
-  const navLinks = ["Home", "Events", "How It Works", "Leaderboard"];
+  const navLinks = ["Home", "Events", "Leaderboard"];
 
   // Check if user is logged in
   const isLoggedIn = !!localStorage.getItem("accessToken");
@@ -20,13 +20,14 @@ const Navbar = () => {
 
       <ul className="links">
         {navLinks.map((link) => (
-          <li
+          <a
             key={link}
             className={activeLink === link ? "active" : ""}
             onClick={() => setActiveLink(link)}
+            href={link=="Home"? "/":link.toLowerCase()}
           >
             {link}
-          </li>
+          </a>
         ))}
       </ul>
 
@@ -35,7 +36,14 @@ const Navbar = () => {
           // Logged in → show profile icon
 
           <div style={{ display: "flex", gap: "50px" }}>
-            <CircleUserRound size={32} className="text-blue-500" />
+            <CircleUserRound
+              size={32}
+              className="text-blue-500"
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+                navigate("/profile");
+              }}
+            />
 
             <Button
               name="log out"
@@ -43,13 +51,13 @@ const Navbar = () => {
               onClick={() => {
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
-
+                
                 navigate("/login");
               }}
             />
           </div>
         ) : (
-          // Not logged in → show Login + Register
+          // Not logged in → will show  Login + Register
           <>
             <Button name="Login" link="/login" />
             <Button name="Register" link="/register" />
