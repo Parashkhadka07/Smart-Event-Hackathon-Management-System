@@ -175,3 +175,25 @@
     flex-direction: column;
   }
 }
+.profile_avatar {
+  /* Dimensions & Shape */
+  width: 96px;
+  height: 96px;
+  border-radius: 50%; /* Use 16px if you prefer a rounded square */
+
+  /* Background */
+  background-color: #0d233a; /* Dark Blue */
+
+  /* Center the letter vertically & horizontally */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Large Typography */
+  color: #ffffff;
+  font-size: 48px;
+  font-weight: 700;
+  font-family: system-ui, -apple-system, sans-serif;
+  text-transform: uppercase;
+  user-select: none;
+}

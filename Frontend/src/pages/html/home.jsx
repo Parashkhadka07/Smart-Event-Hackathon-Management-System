@@ -1,177 +1,228 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  ArrowRight,
+  CalendarDays,
+  Compass,
+  Gavel,
+  Sparkles,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { LogIn, LogOut } from "lucide-react";
+import { getAuthHeaders, isAuthenticated } from "../../utils/auth";
 import "../css/home.css";
-import Button from "../../components/html/Button.jsx";
-import photo1 from "../../assets/images/photo1.avif";
-import photo2 from "../../assets/images/photo2.avif";
-import photo3 from "../../assets/images/photo3.avif";
-import Navbar from "../../components/html/navbar.jsx";
-import { Footer } from "../../components/html/footer.jsx";
+
+const API = "http://localhost:8000/api/v1";
+const formatDate = (value) =>
+  value
+    ? new Date(value).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      })
+    : "Date to be announced";
 
 const Home = () => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const loggedIn = isAuthenticated();
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("username");
+    window.location.assign("/");
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated()) return;
+    setLoading(true);
+    axios
+      .get(`${API}/events/`, { headers: getAuthHeaders() })
+      .then(({ data }) => setEvents(data || []))
+      .catch(() => setEvents([]))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <>
-    <Navbar/>
-      <div className="hero">
-        <div className="left">
-          <div className="top">
-            <div className="new">NEW</div>
-            <div className="top_text">
-              AI-Powered Project Submissions & Multi-Judge Rubrics
-            </div>
-          </div>
+    <div className="landing">
+      <header className="landing_nav">
+        <Link className="landing_brand" to="/">
+          Nerd<span>Hub</span>
+        </Link>
+        <nav className="landing_nav_links" aria-label="Primary navigation">
+          <Link to="/events">Hackathons</Link>
+          <a href="#how-it-works">How it works</a>
+        </nav>
+        <div className="landing_nav_actions">
+          {loggedIn ? (
+            <>
+              <Link className="landing_button" to="/dashboard">
+                Workspace
+              </Link>
+              <button
+                className="landing_button"
+                type="button"
+                onClick={handleLogout}
+              >
+                <LogOut size={14} /> Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link className="landing_button" to="/login">
+                <LogIn size={14} /> Sign in
+              </Link>
+              <Link
+                className="landing_button landing_button_primary"
+                to="/register"
+              >
+                Get started
+              </Link>
+            </>
+          )}
+        </div>
+      </header>
 
-          <div className="big_text">
-            <p className="textfs"> Turn Ideas Into</p>
-            <p className="cloured_text">Innovation</p>{" "}
-            <p className="text">& Breakthroughs</p>
-          </div>
-          <div className="hero_text">
-            NerdHub empowers hackathon organizers, mentors, and developers
-            <br /> to collaborate, submit verified code, and compete seamlessly
-            with live <br />
-            automated leaderboards.
-          </div>
-          <div className="hero_button">
-            <Button name="Explore Events" height="50px" width="150px" />
-            <Button name="Host an Event" height="50px" width="150px" />
-          </div>
-          <hr />
-          <div className="public_proof">
-            <div>
-              <img className="images_hero" src={photo1} alt="User" />
-              <img className="images_hero" src={photo2} alt="User" />
-              <img className="images_hero" src={photo3} alt="User" />
+      <main>
+        <section className="landing_hero">
+          <div>
+            <div className="landing_kicker">
+              <Sparkles size={13} /> One workspace for every hackathon
             </div>
-            <span>
-              Joined by <strong>2,500+ developers</strong> across top
-              universities & tech companies.
-            </span>
-          </div>
-        </div>
-        <div className="right">
-          <div className="BOX">
-            <div className="circle">
-              <div className="red_circle"></div>
-              <div className="yellow_circle"></div>
-              <div className="green_circle"></div>
-            </div>
-            <div className="box_top">
-              <div>nerdhub-live-hackathon.ts</div>
-              <div className="live_text">LIVE</div>
+            <h1>
+              Discover. Build. <em>Compete.</em>
+            </h1>
+            <p>
+              A focused platform for finding challenges, forming teams,
+              submitting projects, and running fair evaluations.
+            </p>
+            <div className="landing_actions">
+              <Link
+                className="landing_button landing_button_primary"
+                to="/events"
+              >
+                Browse hackathons <ArrowRight size={15} />
+              </Link>
+              <Link
+                className="landing_button"
+                to={isAuthenticated() ? "/dashboard" : "/register"}
+              >
+                {isAuthenticated() ? "Open workspace" : "Create account"}
+              </Link>
             </div>
           </div>
-          <hr style={{ margin: "0 30px 0 20px" }} />
+          <div className="landing_signal">
+            <div className="landing_signal_label">Your next move</div>
+            <h2>
+              {isAuthenticated()
+                ? "Continue your workspace"
+                : "Find your first challenge"}
+            </h2>
+            <p>
+              {isAuthenticated()
+                ? "Your dashboard brings together the events and work that matter to your role."
+                : "Join as a participant, organizer, or judge and get the right workspace from the start."}
+            </p>
+            <div className="landing_signal_row">
+              <span>
+                <Compass size={14} /> Explore
+              </span>
+              <span>
+                <Gavel size={14} /> Evaluate
+              </span>
+              <span>
+                <CalendarDays size={14} /> Launch
+              </span>
+            </div>
+          </div>
+        </section>
 
-          <div className="status">
-            <div>// Active Hackathon: CodeSprint Global 2026</div>
+        <section className="landing_section" aria-labelledby="featured-heading">
+          <div className="landing_section_header">
             <div>
-              <span className="status_box">Status:</span>
-              <span className="jug"> JUDGING_IN_PROGRESS</span>
+              <h2 id="featured-heading">Open on NerdHub</h2>
+              <p>Live events from your workspace.</p>
             </div>
-            <div>
-              Submissions: <span className="projects"> 142 Projects</span>
-            </div>
+            <Link className="back_link" to="/events">
+              View all <ArrowRight size={14} />
+            </Link>
           </div>
-          <div className="sanskar_div">
-            <div className="progess_status">
-              <div className="progress_text">
-                <strong>Current Top Team: Team NeuralCraft</strong>
+          <div className="landing_event_grid">
+            {loading ? (
+              <div className="landing_empty">
+                Loading available hackathons...
               </div>
-              <div className="progress_point">98.5 pts</div>
-            </div>
-            <div className="progress">
-              <div className="progressfill"></div>
-            </div>
+            ) : (
+              events
+                .filter((event) => event.status !== "draft")
+                .slice(0, 3)
+                .map((event) => (
+                  <Link
+                    className="landing_event"
+                    to={`/events/${event.id}`}
+                    key={event.id}
+                  >
+                    <span className="status_badge">{event.status}</span>
+                    <h3>{event.title}</h3>
+                    <p>
+                      {event.description ||
+                        "Details will be shared by the organizer."}
+                    </p>
+                    <div className="landing_event_meta">
+                      <CalendarDays size={13} /> {formatDate(event.start_date)}{" "}
+                      to {formatDate(event.end_date)}
+                    </div>
+                  </Link>
+                ))
+            )}
+            {!loading &&
+              events.filter((event) => event.status !== "draft").length ===
+                0 && (
+                <div className="landing_empty">
+                  No hackathons are available yet. Check back when an organizer
+                  publishes one.
+                </div>
+              )}
           </div>
-          <div className="basnet_don">
-            <div>
-              <div>
-                <strong>Prize Pool</strong>
-              </div>
-              <div>$15,000 + Cloud Credits</div>
-            </div>
-            <div>
-              <div>
-                <Button name="View Event" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="total_events">
-        <div className="data">
-          <div className="number hosted">120+</div>
-          <div className="number_text">Events Hosted</div>
-        </div>
-        <div className="data">
-          <div className="number active">2,500+</div>
-          <div className="number_text">Active Participants</div>
-        </div>
-        <div className="data">
-          <div className="number teams">600+</div>
-          <div className="number_text">Teams Formed</div>
-        </div>
-        <div className="data">
-          <div className="number project">1,200+</div>
+        </section>
 
-          <div className="number_text">Projects Built</div>
-        </div>
-      </div>
-      <div className="home_bottom">
-        <div>
-          <div className="bottom_big_text">How NerdHub Works</div>
-          <div className="bottom_small_text">
-            <strong>
-              A seamless journey from initial idea generation to real-time
-              evaluation and leaderboard recognition.
-            </strong>
-          </div>
-        </div>
-        <div className="box_container">
-          <div className="boxes">
-            <div className="bignumber">1</div>
-            <div className="bigtext_bottom">Discover</div>
-            <div className="small_text_bottom">
-              Browse online or in-person hackathons based on technologies,
-              dates, and prizes.
+        <section className="landing_section" id="how-it-works">
+          <div className="landing_section_header">
+            <div>
+              <h2>One flow, three perspectives</h2>
+              <p>Everyone sees the work they need to move forward.</p>
             </div>
           </div>
-          <div className="boxes">
-            <div className="bignumber">2</div>
-            <div className="bigtext_bottom">Register</div>
-            <div className="small_text_bottom">
-              Sign up solo or form/join a cross-functional team with automated
-              invite codes.
+          <div className="landing_steps">
+            <div className="landing_step">
+              <strong>01 / PARTICIPANT</strong>
+              <h3>Find your challenge</h3>
+              <p>
+                Register for an open event, create your team, and move from idea
+                to submitted project.
+              </p>
+            </div>
+            <div className="landing_step">
+              <strong>02 / ORGANIZER</strong>
+              <h3>Run the event</h3>
+              <p>
+                Publish a hackathon, track participation, manage the lifecycle,
+                and see progress as work arrives.
+              </p>
+            </div>
+            <div className="landing_step">
+              <strong>03 / JUDGE</strong>
+              <h3>Make it fair</h3>
+              <p>
+                Open assigned projects, evaluate clearly, and keep judging
+                focused from first review to final score.
+              </p>
             </div>
           </div>
-          <div className="boxes">
-            <div className="bignumber">3</div>
-            <div className="bigtext_bottom">Build</div>
-            <div className="small_text_bottom">
-              Connect with assigned mentors, participate in office hours, and
-              write clean code.
-            </div>
-          </div>
-          <div className="boxes">
-            <div className="bignumber">4</div>
-            <div className="bigtext_bottom">Submit</div>
-            <div className="small_text_bottom">
-              Upload code repositories, live demo links, presentations, and
-              solution blueprints.
-            </div>
-          </div>
-          <div className="boxes">
-            <div className="bignumber">5</div>
-            <div className="bigtext_bottom">Compete</div>
-            <div className="small_text_bottom">
-              Get scored by judges on innovation, tech stack, and UI to win
-              prizes on live leaderboards.
-            </div>
-          </div>
-        </div>
-      </div>
-      <Footer/>
-    </>
+        </section>
+      </main>
+    </div>
   );
 };
 

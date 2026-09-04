@@ -2,8 +2,9 @@ import { useState } from "react";
 import "../css/navbar.css";
 import Logo from "./logo";
 import Button from "./Button";
-import { User, CircleUserRound } from "lucide-react";
+import { CircleUserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { isAuthenticated, normalizeRole } from "../../utils/auth";
 
 const Navbar = () => {
   const [activeLink, setActiveLink] = useState("Home");
@@ -12,7 +13,8 @@ const Navbar = () => {
   const navLinks = ["Home", "Events", "Leaderboard"];
 
   // Check if user is logged in
-  const isLoggedIn = !!localStorage.getItem("accessToken");
+  const isLoggedIn = isAuthenticated();
+  const role = normalizeRole(localStorage.getItem("userRole"));
 
   return (
     <div className="navbar">
@@ -24,7 +26,7 @@ const Navbar = () => {
             key={link}
             className={activeLink === link ? "active" : ""}
             onClick={() => setActiveLink(link)}
-            href={link=="Home"? "/":link.toLowerCase()}
+            href={link == "Home" ? "/" : link.toLowerCase()}
           >
             {link}
           </a>
@@ -51,7 +53,8 @@ const Navbar = () => {
               onClick={() => {
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
-                
+                localStorage.removeItem("userRole");
+                localStorage.removeItem("username");
                 navigate("/login");
               }}
             />
@@ -64,6 +67,15 @@ const Navbar = () => {
           </>
         )}
       </ul>
+
+      {isLoggedIn && (
+        <div
+          className="user_role_chip"
+          style={{ marginLeft: "12px", textTransform: "capitalize" }}
+        >
+          {role}
+        </div>
+      )}
     </div>
   );
 };

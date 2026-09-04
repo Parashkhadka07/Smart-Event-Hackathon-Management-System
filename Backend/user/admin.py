@@ -4,7 +4,7 @@ from .models import User ,token
 
 class CustomUserAdmin(admin.ModelAdmin):
     model = User
-    list_display = ['id', 'username', 'email','password',  'role']
+    list_display = ['id', 'username', 'email', 'role']
     search_fields = ['username', 'email']
 
 admin.site.register(User, CustomUserAdmin)

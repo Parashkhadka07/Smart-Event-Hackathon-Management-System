@@ -1,3 +1,20 @@
 from django.contrib import admin
+from .models import (
+	Event,
+	Team,
+	TeamMember,
+	EventRegistration,
+	JudgeAssignment,
+	ProjectSubmission,
+	Judgement,
+)
 
-# Register your models here.
+admin.site.register([
+	Event,
+	Team,
+	TeamMember,
+	EventRegistration,
+	JudgeAssignment,
+	ProjectSubmission,
+	Judgement,
+])

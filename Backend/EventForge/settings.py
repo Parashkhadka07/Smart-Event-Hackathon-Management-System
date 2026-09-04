@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'user',
+    'event',
     "corsheaders",
 ]
 
@@ -80,8 +81,13 @@ WSGI_APPLICATION = 'EventForge.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': 'localhost:1521/XEPDB1',  # Standard pluggable DB for Oracle XE
+        'USER': 'SYSTEM',    # e.g., 'system' or custom user
+        'PASSWORD': 'password',
+        'HOST': '',                       # Handled in NAME
+        'PORT': '',                       # Handled in NAME
+    
     }
 }
 

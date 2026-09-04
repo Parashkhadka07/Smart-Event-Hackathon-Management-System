@@ -1,197 +1,282 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import "../css/Dashboard.css";
 import Sidebar from "../../components/html/sidebar";
+import { useNavigate } from "react-router-dom";
 import { Search, Upload, Calendar, Users, Code2, Clock } from "lucide-react";
 
 const Dashboard = () => {
+  const role = localStorage.getItem("userRole") || "participant";
+  const isOrganizer = role === "organizer";
+  const isJudge = role === "judge";
+  const navigate = useNavigate();
+  const [events, setEvents] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [judgements, setJudgements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const headers = {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        };
+        const [
+          eventResponse,
+          registrationResponse,
+          teamResponse,
+          submissionResponse,
+          judgementResponse,
+        ] = await Promise.all([
+          axios.get("http://localhost:8000/api/v1/events/", headers),
+          axios.get("http://localhost:8000/api/v1/registrations/", headers),
+          axios.get("http://localhost:8000/api/v1/teams/", headers),
+          axios.get("http://localhost:8000/api/v1/submissions/", headers),
+          axios.get("http://localhost:8000/api/v1/judgements/", headers),
+        ]);
+        setEvents(eventResponse.data || []);
+        setRegistrations(registrationResponse.data || []);
+        setTeams(teamResponse.data || []);
+        setSubmissions(submissionResponse.data || []);
+        setJudgements(judgementResponse.data || []);
+      } catch (error) {
+        console.error("Unable to load dashboard events", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const activeEvents = events.filter((event) => event.status === "open").length;
+  const totalSubmissions = submissions.length;
+  const pendingEvaluations = Math.max(
+    submissions.length - judgements.length,
+    0,
+  );
+
+  const participantHeader = {
+    title: "Welcome back! 👋",
+    subtitle: "Your hackathon workspace is now connected to the backend data.",
+    primaryAction: "Submit Project",
+    secondaryAction: "Find Hackathons",
+  };
+
+  const organizerHeader = {
+    title: "Organizer dashboard",
+    subtitle: "Monitor live events and registrations from the backend.",
+    primaryAction: "Create Event",
+    secondaryAction: "View Registrations",
+  };
+
+  const judgeHeader = {
+    title: "Judge dashboard",
+    subtitle: "Review backend-managed submissions and score them accurately.",
+    primaryAction: "Review Projects",
+    secondaryAction: "Leaderboard",
+  };
+
+  const activeHeader = isOrganizer
+    ? organizerHeader
+    : isJudge
+      ? judgeHeader
+      : participantHeader;
+
   return (
     <div className="dash_layout">
       <Sidebar activePage="dashboard" onNavigate={() => {}} />
 
       <main className="dash_main">
-        {/* Header */}
         <div className="dash_header">
           <div>
-            <h1 className="dash_title">Welcome back, Parash! 👋</h1>
-            <p className="dash_subtitle">
-              HackFest 2026 is currently active. Project submission closes in
-              2 days.
-            </p>
+            <h1 className="dash_title">{activeHeader.title}</h1>
+            <p className="dash_subtitle">{activeHeader.subtitle}</p>
           </div>
           <div className="dash_header_actions">
-            <button className="btn_ghost">
-              <Search size={14} /> Find Hackathons
+            <button
+              className="btn_ghost"
+              onClick={() =>
+                navigate(
+                  isOrganizer
+                    ? "/events"
+                    : isJudge
+                      ? "/leaderboard"
+                      : "/events",
+                )
+              }
+            >
+              <Search size={14} /> {activeHeader.secondaryAction}
             </button>
-            <button className="btn_primary">
-              <Upload size={14} /> Submit Project
+            <button
+              className="btn_primary"
+              onClick={() =>
+                navigate(
+                  isOrganizer
+                    ? "/create-event"
+                    : isJudge
+                      ? "/review"
+                      : "/submit",
+                )
+              }
+            >
+              <Upload size={14} /> {activeHeader.primaryAction}
             </button>
           </div>
         </div>
 
-        {/* Stat Cards */}
         <div className="stat_grid">
-          <div className="stat_card">
-            <div className="stat_top">
-              <span>Registered Events</span>
-              <Calendar size={16} className="stat_icon" />
-            </div>
-            <div className="stat_value">3</div>
-            <div className="stat_note">1 Active this week</div>
-          </div>
-
-          <div className="stat_card">
-            <div className="stat_top">
-              <span>Active Team</span>
-              <Users size={16} className="stat_icon" />
-            </div>
-            <div className="stat_value">NeuralCraft</div>
-            <div className="stat_note">4 / 4 Members assigned</div>
-          </div>
-
-          <div className="stat_card">
-            <div className="stat_top">
-              <span>Projects Submitted</span>
-              <Code2 size={16} className="stat_icon" />
-            </div>
-            <div className="stat_value">2</div>
-            <div className="stat_note">1 Draft Pending</div>
-          </div>
-
-          <div className="stat_card">
-            <div className="stat_top">
-              <span>Next Deadline</span>
-              <Clock size={16} className="stat_icon" />
-            </div>
-            <div className="stat_value stat_value_alert">42h 18m</div>
-            <div className="stat_note">HackFest Code Submission</div>
-          </div>
+          {isOrganizer ? (
+            <>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Events</span>
+                  <Calendar size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">
+                  {loading ? "..." : events.length}
+                </div>
+                <div className="stat_note">Backend total</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Open</span>
+                  <Users size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">{activeEvents}</div>
+                <div className="stat_note">Registration open</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Submissions</span>
+                  <Code2 size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">
+                  {loading ? "..." : totalSubmissions}
+                </div>
+                <div className="stat_note">Event records</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Review</span>
+                  <Clock size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value stat_value_alert">Live</div>
+                <div className="stat_note">Backend status</div>
+              </div>
+            </>
+          ) : isJudge ? (
+            <>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Assigned</span>
+                  <Calendar size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">{events.length}</div>
+                <div className="stat_note">Assigned events</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Submissions</span>
+                  <Code2 size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">{totalSubmissions}</div>
+                <div className="stat_note">Assigned submissions</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Live</span>
+                  <Users size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">
+                  {loading ? "..." : pendingEvaluations}
+                </div>
+                <div className="stat_note">Evaluations remaining</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Deadline</span>
+                  <Clock size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value stat_value_alert">
+                  {loading ? "..." : judgements.length}
+                </div>
+                <div className="stat_note">Evaluations completed</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Registered</span>
+                  <Calendar size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">
+                  {loading ? "..." : registrations.length}
+                </div>
+                <div className="stat_note">My hackathons</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Open</span>
+                  <Users size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">{activeEvents}</div>
+                <div className="stat_note">Registration open</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Submissions</span>
+                  <Code2 size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value">
+                  {loading ? "..." : submissions.length}
+                </div>
+                <div className="stat_note">My submissions</div>
+              </div>
+              <div className="stat_card">
+                <div className="stat_top">
+                  <span>Teams</span>
+                  <Clock size={16} className="stat_icon" />
+                </div>
+                <div className="stat_value stat_value_alert">
+                  {loading ? "..." : teams.length}
+                </div>
+                <div className="stat_note">My teams</div>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Two column: Active event + Team */}
-        <div className="dash_grid">
-          {/* Active Event */}
-          <div className="panel panel_event">
-            <div className="panel_top_row">
-              <span className="tag_active">Active Hackathon</span>
-              <span className="panel_meta">Virtual / Online</span>
-            </div>
-
-            <h2 className="panel_title">HackFest Global 2026</h2>
-            <p className="panel_desc">
-              Build next-gen AI applications utilizing modern APIs, LLMs, and
-              cloud infrastructure.
-            </p>
-
-            <div className="progress_row">
-              <div className="progress_labels">
-                <span>Hackathon Phase: Build & Submit</span>
-                <span className="progress_phase">Phase 3 of 5</span>
-              </div>
-              <div className="progress_track">
-                <div className="progress_fill" style={{ width: "65%" }} />
-              </div>
-            </div>
-
-            <div className="phase_grid">
-              <div className="phase_box">
-                <div className="phase_label">Registration</div>
-                <div className="phase_value phase_done">Closed</div>
-              </div>
-              <div className="phase_box">
-                <div className="phase_label">Submission</div>
-                <div className="phase_value phase_warn">Closes in 42h</div>
-              </div>
-              <div className="phase_box">
-                <div className="phase_label">Judging</div>
-                <div className="phase_value">Starts Aug 12</div>
-              </div>
-            </div>
-
-            <div className="panel_actions">
-              <button className="btn_ghost">View Full Schedule</button>
-              <button className="btn_primary">Open Project Wizard</button>
-            </div>
+        <div className="panel panel_event">
+          <div className="panel_top_row">
+            <span className="tag_active">Backend event status</span>
+            <span className="panel_meta">Live data</span>
           </div>
-
-          {/* Team Widget */}
-          <div className="panel panel_team">
-            <div className="team_top_row">
-              <h3 className="panel_subtitle">My Team: NeuralCraft</h3>
-              <span className="tag_leader">Leader</span>
-            </div>
-
-            <div className="team_list">
-              <div className="team_member">
-                <div className="member_left">
-                  <img
-                    src="https://i.pravatar.cc/60?img=12"
-                    alt="Parash"
-                    className="member_avatar"
-                  />
-                  <span>Parash (You)</span>
+          <h2 className="panel_title">
+            {events[0]?.title || "No event created yet"}
+          </h2>
+          <p className="panel_desc">
+            {events[0]?.description ||
+              "Create your first event from the backend or add an event record to begin the workflow."}
+          </p>
+          <div className="phase_grid">
+            {events.length > 0 ? (
+              events.slice(0, 3).map((event) => (
+                <div className="phase_box" key={event.id}>
+                  <div className="phase_label">{event.title}</div>
+                  <div className="phase_value">{event.status}</div>
                 </div>
-                <span className="member_role">Full Stack</span>
+              ))
+            ) : (
+              <div className="phase_box">
+                <div className="phase_label">No records</div>
+                <div className="phase_value">Backend empty</div>
               </div>
-
-              <div className="team_member">
-                <div className="member_left">
-                  <img
-                    src="https://i.pravatar.cc/60?img=32"
-                    alt="Alex"
-                    className="member_avatar"
-                  />
-                  <span>Alex Rivera</span>
-                </div>
-                <span className="member_role">AI / ML Engineer</span>
-              </div>
-
-              <div className="team_member">
-                <div className="member_left">
-                  <img
-                    src="https://i.pravatar.cc/60?img=47"
-                    alt="Maya"
-                    className="member_avatar"
-                  />
-                  <span>Maya Patel</span>
-                </div>
-                <span className="member_role">UI/UX Designer</span>
-              </div>
-            </div>
-
-            <button className="btn_ghost btn_full">
-              Manage Team & Invites
-            </button>
-          </div>
-        </div>
-
-        {/* Announcements */}
-        <div className="panel panel_announcements">
-          <h3 className="panel_subtitle">📣 Event Announcements</h3>
-
-          <div className="announcement">
-            <div>
-              <span className="announcement_title">
-                Mentor Office Hours Schedule Released
-              </span>
-              <p className="announcement_desc">
-                Book 1-on-1 sessions with AI/Cloud mentors from 2 PM to 6 PM
-                EST in the Mentorship tab.
-              </p>
-            </div>
-            <span className="announcement_time">2 hours ago</span>
-          </div>
-
-          <div className="announcement">
-            <div>
-              <span className="announcement_title">
-                Submission Requirements Checklist
-              </span>
-              <p className="announcement_desc">
-                Ensure your GitHub repository is set to public and includes a
-                runnable README or Loom video demo link.
-              </p>
-            </div>
-            <span className="announcement_time">Yesterday</span>
+            )}
           </div>
         </div>
       </main>

@@ -1,19 +1,23 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "../css/register.css"; // reuse the same styling as Register
 import Logo from "../../components/html/logo";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { setLoggedInUser } from "../../utils/auth";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage({});
+    setIsSubmitting(true);
 
     const userdata = { username, password };
 
@@ -22,10 +26,24 @@ const Login = () => {
         "http://localhost:8000/api/v1/login/",
         userdata,
       );
-      console.log("login response:", response.data);
-      localStorage.setItem("accessToken", response.data.access);
-      localStorage.setItem("refreshToken", response.data.refresh);
-      navigate("/");
+
+      const tokenResponse = await axios.get(
+        "http://localhost:8000/api/v1/me/",
+        {
+          headers: { Authorization: `Bearer ${response.data.access}` },
+        },
+      );
+
+      const role = tokenResponse.data.role || "participant";
+
+      setLoggedInUser({
+        username,
+        role,
+        accessToken: response.data.access,
+        refreshToken: response.data.refresh,
+      });
+
+      navigate("/dashboard");
       alert("login sucessfull");
     } catch (error) {
       if (error.response?.data) {
@@ -36,16 +54,37 @@ const Login = () => {
         });
       }
       console.error("login error", error.response?.data);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="register-container">
-      <div className="register-form-wrapper">
+    <div className="auth-container">
+      <aside className="auth-aside">
         <Logo />
-        <div className="form-card">
+        <div className="auth-aside_content">
+          <span className="auth-eyebrow">
+            <ShieldCheck size={14} /> Secure workspace access
+          </span>
+          <h1>Bring your next big idea into focus.</h1>
+          <p>
+            One calm workspace for finding challenges, running events, and
+            making judging fair.
+          </p>
+        </div>
+        <div className="auth-aside_footer">
+          NerdHub / Hackathon Management System
+        </div>
+      </aside>
+      <main className="auth-form-wrapper">
+        <div className="auth-form-card">
+          <div className="auth-mobile_logo">
+            <Logo />
+          </div>
+          <span className="auth-kicker">Welcome back</span>
           <h2>Login</h2>
-          <p className="subtitle">Enter your credentials to continue</p>
+          <p className="subtitle">Sign in to continue to your workspace.</p>
 
           <form onSubmit={handleLogin} className="register-form">
             {errorMessage.non_field_errors && (
@@ -53,9 +92,11 @@ const Login = () => {
                 {errorMessage.non_field_errors.join(" ")}
               </p>
             )}
-            <div>{errorMessage.detail && (
-              <small style={{ color: "red" }}>{errorMessage.detail}</small>
-            )}</div>
+            <div>
+              {errorMessage.detail && (
+                <small style={{ color: "red" }}>{errorMessage.detail}</small>
+              )}
+            </div>
             <div className="input-group">
               <label>Username</label>
               <input
@@ -121,15 +162,16 @@ const Login = () => {
               )}
             </div>
 
-            <button type="submit" className="buttonn">
-              Login
+            <button type="submit" className="buttonn" disabled={isSubmitting}>
+              {isSubmitting ? "Signing in..." : "Sign in"}{" "}
+              {!isSubmitting && <ArrowRight size={16} />}
             </button>
-            <div style={{ textAlign: "center", marginTop: "15px" }}>
-              Don't have an account? <Link to="/register">sign up</Link>
+            <div className="auth-switch">
+              Don&apos;t have an account? <Link to="/register">Create one</Link>
             </div>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

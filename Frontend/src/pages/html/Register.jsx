@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "../css/register.css";
 import Logo from "../../components/html/logo";
 // 1. Import the eye icons
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { setLoggedInUser } from "../../utils/auth";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -13,18 +15,12 @@ const Register = () => {
   const [role, setRole] = useState("");
   const [errorMessage, setErrorMessage] = useState({});
 
-  // 2. Create state variables to track visibility toggle
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  if (role == "participant") {
-    setRole("P");
-  } else if (role == "organizer") {
-    setRole("O");
-  } else if (role == "judge") {
-    setRole("J");
-  }
+  const selectedRole = role;
 
   const handleregister = async (e) => {
     e.preventDefault();
@@ -34,28 +30,49 @@ const Register = () => {
       return;
     }
 
-    const userdata = { username, email, password, role };
-    // console.log(userdata);
+    const userdata = { username, email, password, role: selectedRole };
+    setIsSubmitting(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/v1/users/",
-        userdata,
-      );
+      await axios.post("http://localhost:8000/api/v1/users/", userdata);
+      setLoggedInUser({ username, role: selectedRole });
       setErrorMessage({});
       navigate("/login");
     } catch (error) {
-      setErrorMessage(error.response.data);
+      setErrorMessage(
+        error.response?.data || { detail: "Unable to create your account." },
+      );
       console.error("this is  the error", error.response.data);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="register-container">
-      <div className="register-form-wrapper">
+    <div className="auth-container">
+      <aside className="auth-aside">
         <Logo />
-        <div className="form-card">
-          <h2>Register</h2>
-          <p className="subtitle">Enter your details below to get started</p>
+        <div className="auth-aside_content">
+          <span className="auth-eyebrow">
+            <ShieldCheck size={14} /> Build your place in the room
+          </span>
+          <h1>Start with the right workspace for your role.</h1>
+          <p>
+            Join as a participant, organizer, or judge. Your workspace will
+            adapt to the work ahead.
+          </p>
+        </div>
+        <div className="auth-aside_footer">Participant / Organizer / Judge</div>
+      </aside>
+      <main className="auth-form-wrapper">
+        <div className="auth-form-card auth-register-card">
+          <div className="auth-mobile_logo">
+            <Logo />
+          </div>
+          <span className="auth-kicker">Create your account</span>
+          <h2>Join NerdHub</h2>
+          <p className="subtitle">
+            Set up your account and choose how you contribute.
+          </p>
 
           <form onSubmit={handleregister} className="register-form">
             {/* Email and Username inputs stay identical... */}
@@ -187,25 +204,25 @@ const Register = () => {
                 <option value="" disabled>
                   Select a role
                 </option>
-                <option value="P">participant</option>
-                <option value="J">judge</option>
-
-                <option value="O">organizer</option>
+                <option value="participant">participant</option>
+                <option value="judge">judge</option>
+                <option value="organizer">organizer</option>
               </select>
             </div>
             {errorMessage.role && (
               <small style={{ color: "red" }}>{errorMessage.role}</small>
             )}
 
-            <button type="submit" className="buttonn">
-              Register
+            <button type="submit" className="buttonn" disabled={isSubmitting}>
+              {isSubmitting ? "Creating account..." : "Create account"}{" "}
+              {!isSubmitting && <ArrowRight size={16} />}
             </button>
-            <div style={{ textAlign: "center", marginTop: "15px" }}>
-              Do you have account? <Link to="/login">sign in</Link>
+            <div className="auth-switch">
+              Already have an account? <Link to="/login">Sign in</Link>
             </div>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
